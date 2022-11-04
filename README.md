@@ -33,7 +33,15 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 
 
 ### TODO
-- retrieve questions from IPFS
+- Offchain questions and answers
+- Offchain questions and answers stored on chain with merkle trees
+- Offchain leaderboard stored on chain with merkle trees
+- Retrieve questions & answers from IPFS for merkle tree
+- Valiate user response with a zkProof (thus a blockchain transaction)
+- Validate user responses with recursive zkProofs (One blockchain transaction per module)
+- Implement Modules (entry to learning then quiz section)
+- Reward user with token at the end of each module
+- Validate smart contract code with a test suite in the client
 - Learn how to communicate with another deployed smart contract from within my Quiz Smart Contract
 
 ### Questions for Mina Team
@@ -42,4 +50,7 @@ Or is it ok to be stored offchain and verified on the client?
 - How do I call a method from another smart contract
 - Where do I store the answers to the questions so that they stay private?
 - can I create a token with SnarkyJS?
+
+
+### A
 
