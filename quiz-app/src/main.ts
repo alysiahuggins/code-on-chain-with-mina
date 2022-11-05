@@ -17,6 +17,8 @@ import {
 import question from "./question.js";
 import {short as introQuestions} from "./curriculum/curriculum.js"
 await isReady;
+class MerkleWitness extends Experimental.MerkleWitness(8) {}
+
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
 
@@ -35,22 +37,16 @@ class QAItem extends CircuitValue {
     }
   }
 
-  class Account2 extends CircuitValue {
-    @prop publicKey: PublicKey;
-    @prop points: UInt32;
+  class Answer extends CircuitValue {
+    @prop answer: UInt32;
   
-    constructor(publicKey: PublicKey, points: UInt32) {
-      super(publicKey, points);
-      this.publicKey = publicKey;
-      this.points = points;
+    constructor(answer: UInt32) {
+      super(answer);
+      this.answer = answer;
     }
   
     hash(): Field {
       return Poseidon.hash(this.toFields());
-    }
-  
-    addPoints(n: number): Account2 {
-      return new Account2(this.publicKey, this.points.add(n));
     }
   }
 
@@ -64,18 +60,24 @@ class QAItem extends CircuitValue {
     // --------------
     // Creating the tree of questions and answers
     // this map serves as our off-chain in-memory storage
-    const Tree = new Experimental.MerkleTree(8);
-    let QAs: Map<number, QAItem> = new Map<number, QAItem>();
-    for(let i in introQuestions){
-        let bob = new Account2(Local.testAccounts[0].publicKey, UInt32.from(0));
+    // const Tree = new Experimental.MerkleTree(8);
+    // let QAs: Map<number, QAItem> = new Map<number, QAItem>();
+    // for(let i in introQuestions){
+    //     let thisQA = new QAItem(CircuitString.fromString(introQuestions[i].question), UInt32.fromNumber(introQuestions[i].answer));
+    //     QAs.set(parseInt(i), thisQA);
+    //     Tree.setLeaf(BigInt(i), thisQA.hash());
+    // }
 
-        let thisQA = new QAItem(CircuitString.fromString(introQuestions[i].question), UInt32.fromNumber(introQuestions[i].answer));
-        QAs.set(parseInt(i), thisQA);
-        Tree.setLeaf(BigInt(i), thisQA.hash());
+    const answerTree = new Experimental.MerkleTree(8);
+    let Answers: Map<number, Answer> = new Map<number, Answer>();
+    for(let i in introQuestions){
+        let thisAnswer = new Answer(UInt32.fromNumber(introQuestions[i].answer));
+        Answers.set(parseInt(i), thisAnswer);
+        answerTree.setLeaf(BigInt(i), thisAnswer.hash());
     }
 
     // now that we got our accounts set up, we need the commitment to deploy our contract!
-    initialCommitment = Tree.getRoot();
+    initialCommitment = answerTree.getRoot();
 
   // ----------------------------------------------------
   // Create a public/private key pair. The public key is our address and where we will deploy to
@@ -85,7 +87,7 @@ class QAItem extends CircuitValue {
   const contract = new Quiz(zkAppAddress);
   const deployTxn = await Mina.transaction(deployerAccount, () => {
     AccountUpdate.fundNewAccount(deployerAccount);
-    contract.deploy({ zkappKey: zkAppPrivateKey });
+    contract.deploy({ zkappKey: zkAppPrivateKey});
     contract.init();
     contract.sign(zkAppPrivateKey);
   });
@@ -100,53 +102,100 @@ class QAItem extends CircuitValue {
   var retry = true;
   var retryCount = 0;
   let pass = false;
-  while (retry){
-    for(let i in introQuestions){
-        var response = await question(introQuestions[i].question);
-        if(parseInt(response.trim()) == introQuestions[i].answer) {
-            console.log("Correct!");
-            pass = true;
-            retry = false;
-        }else{
-            pass = false;
-            console.log("Incorrect. Ending Quiz");
-            break;
-        }
-    }
-    if(!pass){
-        var response = await question(`Do you want to retry? y/n\n`)
-        response = response.toLowerCase().trim();
-        if(response=='n' || response=="no") {
-            retry = false
-            console.log("Thanks for playing. Keep learning and try again!")
-        }
-        retry = true;
-        retryCount++;
-    }
-  }
+//   while (retry){
+//     for(let i in introQuestions){
+//         var response = await question(introQuestions[i].question);
+//         if(parseInt(response.trim()) == introQuestions[i].answer) {
+//             console.log("Correct!");
+//             pass = true;
+//             retry = false;
+//         }else{
+//             pass = false;
+//             console.log("Incorrect. Ending Quiz");
+//             break;
+//         }
+//     }
+//     if(!pass){
+//         var response = await question(`Do you want to retry? y/n\n`)
+//         response = response.toLowerCase().trim();
+//         if(response=='n' || response=="no") {
+//             retry = false
+//             console.log("Thanks for playing. Keep learning and try again!")
+//         }
+//         retry = true;
+//         retryCount++;
+//     }
+//   }
 
-  var score = 0;
-  if(retryCount == 0) score = 10;
-  else if(retryCount == 1) score = 5;
-  else if(retryCount == 2) score = 2;
-  else if(retryCount == 3) score = 1;
-  else if(retryCount >= 4) score = 0;
+//   var score = 0;
+//   if(retryCount == 0) score = 10;
+//   else if(retryCount == 1) score = 5;
+//   else if(retryCount == 2) score = 2;
+//   else if(retryCount == 3) score = 1;
+//   else if(retryCount >= 4) score = 0;
 
   
 
-  const txn1 = await Mina.transaction(deployerAccount, () => {
-    contract.updateHighestScore(Field(score));
-    contract.sign(zkAppPrivateKey);
-  });
-  await txn1.send().wait();
-  const currentHighScore = contract.highestScore.get();
-  console.log('state after txn1:', currentHighScore.toString());
+//   const txn1 = await Mina.transaction(deployerAccount, () => {
+//     contract.updateHighestScore(Field(score));
+//     contract.sign(zkAppPrivateKey);
+//   });
+//   await txn1.send().wait();
+//   const currentHighScore = contract.highestScore.get();
+//   console.log('state after txn1:', currentHighScore.toString());
 
+
+  //answer question
+//   let qaItem = Accounts.get(0)!;
+//   let w = Tree.getWitness(index);
+//   let witness = new MerkleWitness(w);
+
+//   const txn1 = await Mina.transaction(deployerAccount, () => {
+//       contract.validateQuestionResponse(Field(3), );
+//       contract.sign(zkAppPrivateKey);
+//     });
+
+
+  let w = answerTree.getWitness(BigInt(0));
+  let witness = new MerkleWitness(w);
+//   console.log(witness.calculateRoot(Poseidon.hash([Field(1)])).assertEquals(initialCommitment));
+    const txn2 = await Mina.transaction(deployerAccount, () => {
+        contract.validateQuestionResponse(Field(3), witness);
+        contract.sign(zkAppPrivateKey);
+    });
+  await txn2.send().wait();
   console.log('Shutting down')
-
-
 
     await shutdown();
 
 
 })();
+
+async function answerQuestion() {
+
+    // let qaItem = Accounts.get(0)!;
+    // let w = Tree.getWitness(index);
+    // let witness = new MerkleWitness(w);
+
+    // const txn1 = await Mina.transaction(deployerAccount, () => {
+    //     contract.validateQuestionResponse(Field(3));
+    //     contract.sign(zkAppPrivateKey);
+    //   });
+    // let account = Accounts.get(name)!;
+    // let w = Tree.getWitness(index);
+    // let witness = new MerkleWitness(w);
+  
+    // let tx = await Mina.transaction(feePayer, () => {
+    //   leaderboardZkApp.guessPreimage(Field(guess), account, witness);
+    //   if (!doProofs) leaderboardZkApp.sign(zkappKey);
+    // });
+    // if (doProofs) {
+    //   await tx.prove();
+    // }
+    // await tx.send();
+  
+    // if the transaction was successful, we can update our off-chain storage as well
+    // account.points = account.points.add(1);
+    // Tree.setLeaf(index, account.hash());
+    // leaderboardZkApp.commitment.get().assertEquals(Tree.getRoot());
+}
