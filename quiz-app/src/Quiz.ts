@@ -6,13 +6,19 @@ import {
     method,
     DeployArgs,
     Permissions,
+    isReady,
   } from 'snarkyjs';
 
   import {Square} from './Square.js';
+  await isReady;
+  // we need the initiate tree root in order to tell the contract about our off-chain storage
+    let initialCommitment: Field = Field(0);
   
   export class Quiz extends SmartContract {
     @state(Field) highestScore = State<Field>();
     @state(Field) totalQuestions = State<Field>();
+    // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
+    @state(Field) commitment = State<Field>();
   
     deploy(args: DeployArgs) {
       super.deploy(args);
@@ -20,6 +26,7 @@ import {
         ...Permissions.default(),
         editState: Permissions.proofOrSignature(),
       });
+      this.commitment.set(initialCommitment);
     }
   
     @method init() {

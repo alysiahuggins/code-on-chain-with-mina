@@ -6,18 +6,76 @@ import {
   Mina,
   PrivateKey,
   AccountUpdate,
+  UInt32,
+  Experimental,
+  CircuitValue,
+  CircuitString,
+  prop,
+  Poseidon,
+  PublicKey,
 } from 'snarkyjs';
 import question from "./question.js";
-import {intro as introQuestions} from "./curriculum/curriculum.js"
+import {short as introQuestions} from "./curriculum/curriculum.js"
+await isReady;
+// we need the initiate tree root in order to tell the contract about our off-chain storage
+let initialCommitment: Field = Field(0);
 
+class QAItem extends CircuitValue {
+    @prop question: CircuitString;
+    @prop answer: UInt32;
+  
+    constructor(question: CircuitString, answer: UInt32) {
+      super(question, answer);
+      this.question = question;
+      this.answer = answer;
+    }
+  
+    hash(): Field {
+      return Poseidon.hash(this.toFields());
+    }
+  }
+
+  class Account2 extends CircuitValue {
+    @prop publicKey: PublicKey;
+    @prop points: UInt32;
+  
+    constructor(publicKey: PublicKey, points: UInt32) {
+      super(publicKey, points);
+      this.publicKey = publicKey;
+      this.points = points;
+    }
+  
+    hash(): Field {
+      return Poseidon.hash(this.toFields());
+    }
+  
+    addPoints(n: number): Account2 {
+      return new Account2(this.publicKey, this.points.add(n));
+    }
+  }
 
 (async function main (){
-    await isReady;
+    // await isReady;
     console.log('SnarkyJS is ready');
     const Local = Mina.LocalBlockchain();
     Mina.setActiveInstance(Local);
     const deployerAccount = Local.testAccounts[0].privateKey;
 
+    // --------------
+    // Creating the tree of questions and answers
+    // this map serves as our off-chain in-memory storage
+    const Tree = new Experimental.MerkleTree(8);
+    let QAs: Map<number, QAItem> = new Map<number, QAItem>();
+    for(let i in introQuestions){
+        let bob = new Account2(Local.testAccounts[0].publicKey, UInt32.from(0));
+
+        let thisQA = new QAItem(CircuitString.fromString(introQuestions[i].question), UInt32.fromNumber(introQuestions[i].answer));
+        QAs.set(parseInt(i), thisQA);
+        Tree.setLeaf(BigInt(i), thisQA.hash());
+    }
+
+    // now that we got our accounts set up, we need the commitment to deploy our contract!
+    initialCommitment = Tree.getRoot();
 
   // ----------------------------------------------------
   // Create a public/private key pair. The public key is our address and where we will deploy to
