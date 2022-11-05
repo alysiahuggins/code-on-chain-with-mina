@@ -13,7 +13,7 @@ import {
     CircuitValue,
     prop,
   } from 'snarkyjs';
-    import {short as introQuestions} from "./curriculum/curriculum.js"
+    import {answers as answers} from "./curriculum/curriculum.js"
 
   await isReady;
     class MerkleWitness extends Experimental.MerkleWitness(8) {}
@@ -39,8 +39,8 @@ import {
         let committment: Field = Field(0);
 
         let Answers: Map<number, Answer> = new Map<number, Answer>();
-        for(let i in introQuestions){
-            let thisAnswer = new Answer(UInt32.fromNumber(introQuestions[i].answer));
+        for(let i in answers){
+            let thisAnswer = new Answer(UInt32.fromNumber(answers[i].answer));
             Answers.set(parseInt(i), thisAnswer);
             answerTree.setLeaf(BigInt(i), thisAnswer.hash());
         }

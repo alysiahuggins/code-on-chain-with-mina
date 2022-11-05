@@ -32,12 +32,21 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 - - I want there to be a gamification aspect as well which I'm not sure is overkill. I'm thinking as simple as a crowssword puzzle or more animated with a flappy birds or matching bubbles implementation. The crossword puzzle can eventually be interactive which would be interesting with private inputs. 
 
 
-### TODO
-- Offchain questions and answers
-- Offchain questions and answers stored on chain with merkle trees
+### Implementation Steps
+- Offchain questions and answers DONE
+- Offchain questions and answers stored on chain with merkle trees DONE
 - Offchain leaderboard stored on chain with merkle trees
 - Retrieve questions & answers from IPFS for merkle tree
-- Valiate user response with a zkProof (thus a blockchain transaction)
+- Valiate user response with a zkProof (thus a blockchain transaction) DONE
+- Validate user responses with recursive zkProofs (One blockchain transaction per module)
+- Implement Modules (entry to learning then quiz section)
+- Reward user with token at the end of each module
+- Validate smart contract code with a test suite in the client
+- Learn how to communicate with another deployed smart contract from within my Quiz Smart Contract
+
+### TODO
+- Offchain leaderboard stored on chain with merkle trees
+- Retrieve questions & answers from IPFS for merkle tree
 - Validate user responses with recursive zkProofs (One blockchain transaction per module)
 - Implement Modules (entry to learning then quiz section)
 - Reward user with token at the end of each module

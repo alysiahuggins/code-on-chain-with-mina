@@ -15,7 +15,7 @@ import {
   PublicKey,
 } from 'snarkyjs';
 import question from "./question.js";
-import {short as introQuestions} from "./curriculum/curriculum.js"
+import {questions as questions} from "./curriculum/curriculum.js"
 await isReady;
 class MerkleWitness extends Experimental.MerkleWitness(8) {}
 
@@ -103,8 +103,8 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
   var retryCount = 0;
   let pass = false;
   while (retry){
-    for(let i in introQuestions){
-        var response = parseInt((await question(introQuestions[i].question)).trim());
+    for(let i in questions){
+        var response = parseInt((await question(questions[i].question)).trim());
         
         try{
             let txn = await Mina.transaction(deployerAccount, () => {
