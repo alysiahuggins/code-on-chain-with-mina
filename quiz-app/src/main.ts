@@ -20,35 +20,35 @@ await isReady;
 class MerkleWitness extends Experimental.MerkleWitness(8) {}
 
 // we need the initiate tree root in order to tell the contract about our off-chain storage
-let initialCommitment: Field = Field(0);
+// let initialCommitment: Field = Field(0);
 
-class QAItem extends CircuitValue {
-    @prop question: CircuitString;
-    @prop answer: UInt32;
+// class QAItem extends CircuitValue {
+//     @prop question: CircuitString;
+//     @prop answer: UInt32;
   
-    constructor(question: CircuitString, answer: UInt32) {
-      super(question, answer);
-      this.question = question;
-      this.answer = answer;
-    }
+//     constructor(question: CircuitString, answer: UInt32) {
+//       super(question, answer);
+//       this.question = question;
+//       this.answer = answer;
+//     }
   
-    hash(): Field {
-      return Poseidon.hash(this.toFields());
-    }
-  }
+//     hash(): Field {
+//       return Poseidon.hash(this.toFields());
+//     }
+//   }
 
-  class Answer extends CircuitValue {
-    @prop answer: UInt32;
+//   class Answer extends CircuitValue {
+//     @prop answer: UInt32;
   
-    constructor(answer: UInt32) {
-      super(answer);
-      this.answer = answer;
-    }
+//     constructor(answer: UInt32) {
+//       super(answer);
+//       this.answer = answer;
+//     }
   
-    hash(): Field {
-      return Poseidon.hash(this.toFields());
-    }
-  }
+//     hash(): Field {
+//       return Poseidon.hash(this.toFields());
+//     }
+//   }
 
 (async function main (){
     // await isReady;
@@ -68,16 +68,16 @@ class QAItem extends CircuitValue {
     //     Tree.setLeaf(BigInt(i), thisQA.hash());
     // }
 
-    const answerTree = new Experimental.MerkleTree(8);
-    let Answers: Map<number, Answer> = new Map<number, Answer>();
-    for(let i in introQuestions){
-        let thisAnswer = new Answer(UInt32.fromNumber(introQuestions[i].answer));
-        Answers.set(parseInt(i), thisAnswer);
-        answerTree.setLeaf(BigInt(i), thisAnswer.hash());
-    }
+    // const answerTree = new Experimental.MerkleTree(8);
+    // let Answers: Map<number, Answer> = new Map<number, Answer>();
+    // for(let i in introQuestions){
+    //     let thisAnswer = new Answer(UInt32.fromNumber(introQuestions[i].answer));
+    //     Answers.set(parseInt(i), thisAnswer);
+    //     answerTree.setLeaf(BigInt(i), thisAnswer.hash());
+    // }
 
-    // now that we got our accounts set up, we need the commitment to deploy our contract!
-    initialCommitment = answerTree.getRoot();
+    // // now that we got our accounts set up, we need the commitment to deploy our contract!
+    // initialCommitment = answerTree.getRoot();
 
   // ----------------------------------------------------
   // Create a public/private key pair. The public key is our address and where we will deploy to
@@ -156,11 +156,11 @@ class QAItem extends CircuitValue {
 //     });
 
 
-  let w = answerTree.getWitness(BigInt(0));
-  let witness = new MerkleWitness(w);
+//   let w = answerTree.getWitness(BigInt(0));
+//   let witness = new MerkleWitness(w);
 //   console.log(witness.calculateRoot(Poseidon.hash([Field(1)])).assertEquals(initialCommitment));
     const txn2 = await Mina.transaction(deployerAccount, () => {
-        contract.validateQuestionResponse(Field(3), witness);
+        contract.validateQuestionResponse(Field(3), Field(0));
         contract.sign(zkAppPrivateKey);
     });
   await txn2.send().wait();

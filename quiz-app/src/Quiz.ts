@@ -71,16 +71,17 @@ import {
       this.totalQuestions.set(Field(5));
     }
 
-    @method validateQuestionResponse(response: Field, path: MerkleWitness){
+    @method validateQuestionResponse(response: Field, answerIndex: Field){
         //check if response hashes to the correctAnswer hash
         // Poseidon.hash([response]).assertEquals(correctAnswer);
-
+        let w = answerTree.getWitness(answerIndex.toBigInt()); //QUESTION: should this be here or back in main.ts?
+        let witness = new MerkleWitness(w);
         // we fetch the on-chain commitment
         let commitment = this.commitment.get();
         this.commitment.assertEquals(commitment);
     
         // we check that the response is the same as the hash of the answer at that path
-        path.calculateRoot(Poseidon.hash([response])).assertEquals(commitment);
+        witness.calculateRoot(Poseidon.hash([response])).assertEquals(commitment);
 
     
     }
