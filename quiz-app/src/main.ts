@@ -102,37 +102,54 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
   var retry = true;
   var retryCount = 0;
   let pass = false;
-//   while (retry){
-//     for(let i in introQuestions){
-//         var response = await question(introQuestions[i].question);
-//         if(parseInt(response.trim()) == introQuestions[i].answer) {
-//             console.log("Correct!");
-//             pass = true;
-//             retry = false;
-//         }else{
-//             pass = false;
-//             console.log("Incorrect. Ending Quiz");
-//             break;
-//         }
-//     }
-//     if(!pass){
-//         var response = await question(`Do you want to retry? y/n\n`)
-//         response = response.toLowerCase().trim();
-//         if(response=='n' || response=="no") {
-//             retry = false
-//             console.log("Thanks for playing. Keep learning and try again!")
-//         }
-//         retry = true;
-//         retryCount++;
-//     }
-//   }
+  while (retry){
+    for(let i in introQuestions){
+        var response = parseInt((await question(introQuestions[i].question)).trim());
+        
+        try{
+            let txn = await Mina.transaction(deployerAccount, () => {
+                contract.validateQuestionResponse(Field(response), Field(parseInt(i)));
+                contract.sign(zkAppPrivateKey);
+            });
+            await txn.send().wait();
+            pass = true;
+            retry = false;
+        }
+        catch(e){
+            console.log("You encountered the following error"+e);
+            pass = false;
+            console.log("Incorrect. Ending Quiz");
+            break;
+        }
 
-//   var score = 0;
-//   if(retryCount == 0) score = 10;
-//   else if(retryCount == 1) score = 5;
-//   else if(retryCount == 2) score = 2;
-//   else if(retryCount == 3) score = 1;
-//   else if(retryCount >= 4) score = 0;
+        // if(parseInt(response.trim()) == introQuestions[i].answer) {
+        //     console.log("Correct!");
+        //     pass = true;
+        //     retry = false;
+        // }else{
+        //     pass = false;
+        //     console.log("Incorrect. Ending Quiz");
+        //     break;
+        // }
+    }
+    if(!pass){
+        var retryResponse = await question(`Do you want to retry? y/n\n`)
+        retryResponse = retryResponse.toLowerCase().trim();
+        if(retryResponse=='n' || retryResponse=="no") {
+            retry = false
+            console.log("Thanks for playing. Keep learning and try again!")
+        }
+        retry = true;
+        retryCount++;
+    }
+  }
+
+  var score = 0;
+  if(retryCount == 0) score = 10;
+  else if(retryCount == 1) score = 5;
+  else if(retryCount == 2) score = 2;
+  else if(retryCount == 3) score = 1;
+  else if(retryCount >= 4) score = 0;
 
   
 
