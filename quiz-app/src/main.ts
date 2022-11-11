@@ -111,6 +111,7 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
                 contract.validateQuestionResponse(Field(response), Field(parseInt(i)));
                 contract.sign(zkAppPrivateKey);
             });
+            console.log(`Sending blockchain transaction for question ${i}\n`)
             await txn.send().wait();
             pass = true;
             retry = false;
