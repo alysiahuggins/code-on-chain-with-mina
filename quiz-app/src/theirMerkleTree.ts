@@ -177,9 +177,9 @@ export class Quiz2 extends SmartContract {
     this.commitment.assertEquals(commitment);
 
     // we check that the response is the same as the hash of the answer at that path
-    console.log(path.calculateRoot(Poseidon.hash([response])));
+    console.log(path.calculateRoot(Poseidon.hash(response.toFields())));
     console.log(commitment);
-    path.calculateRoot(Poseidon.hash([response])).assertEquals(commitment);
+    path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(commitment);
 
   }
 
@@ -198,30 +198,30 @@ let feePayer = Local.testAccounts[0].privateKey;
 let zkappKey = PrivateKey.random();
 let zkappAddress = zkappKey.toPublicKey();
 
-// this map serves as our off-chain in-memory storage
-let Accounts: Map<string, Account> = new Map<Names, Account>();
+// // this map serves as our off-chain in-memory storage
+// let Accounts: Map<string, Account> = new Map<Names, Account>();
 
-let bob = new Account(Local.testAccounts[0].publicKey, UInt32.from(0));
-let alice = new Account(Local.testAccounts[1].publicKey, UInt32.from(0));
-let charlie = new Account(Local.testAccounts[2].publicKey, UInt32.from(0));
-let olivia = new Account(Local.testAccounts[3].publicKey, UInt32.from(0));
+// let bob = new Account(Local.testAccounts[0].publicKey, UInt32.from(0));
+// let alice = new Account(Local.testAccounts[1].publicKey, UInt32.from(0));
+// let charlie = new Account(Local.testAccounts[2].publicKey, UInt32.from(0));
+// let olivia = new Account(Local.testAccounts[3].publicKey, UInt32.from(0));
 
-Accounts.set('Bob', bob);
-Accounts.set('Alice', alice);
-Accounts.set('Charlie', charlie);
-Accounts.set('Olivia', olivia);
+// Accounts.set('Bob', bob);
+// Accounts.set('Alice', alice);
+// Accounts.set('Charlie', charlie);
+// Accounts.set('Olivia', olivia);
 
-// we now need "wrap" the Merkle tree around our off-chain storage
-// we initialize a new Merkle Tree with height 8
-const Tree = new MerkleTree(8);
+// // we now need "wrap" the Merkle tree around our off-chain storage
+// // we initialize a new Merkle Tree with height 8
+// const Tree = new MerkleTree(8);
 
-Tree.setLeaf(BigInt(0), bob.hash());
-Tree.setLeaf(BigInt(1), alice.hash());
-Tree.setLeaf(BigInt(2), charlie.hash());
-Tree.setLeaf(BigInt(3), olivia.hash());
+// Tree.setLeaf(BigInt(0), bob.hash());
+// Tree.setLeaf(BigInt(1), alice.hash());
+// Tree.setLeaf(BigInt(2), charlie.hash());
+// Tree.setLeaf(BigInt(3), olivia.hash());
 
-// now that we got our accounts set up, we need the commitment to deploy our contract!
-initialCommitment = Tree.getRoot();
+// // now that we got our accounts set up, we need the commitment to deploy our contract!
+// initialCommitment = Tree.getRoot();
 initialCommitment = createMerkleTree();
 
 
@@ -257,9 +257,16 @@ try{
        try{
            let txn = await Mina.transaction(feePayer, () => {
                leaderboardZkApp.validateQuestionResponse(Field(response), Field(parseInt(i)), witness);
+                leaderboardZkApp.sign(zkappKey);
+
            });
-           console.log(`Sending blockchain transaction for question ${i}\n`)
+           console.log(`Proving blockchain transaction for question ${i}\n`)
+           if (doProofs) {
+                await txn.prove();
+              }
+              console.log(`Sending blockchain transaction for question ${i}\n`)
            await txn.send();
+           console.log('Correct');
            pass = true;
            retry = false;
        }
