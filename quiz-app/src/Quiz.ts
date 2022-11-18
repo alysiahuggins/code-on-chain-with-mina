@@ -12,11 +12,17 @@ import {
     UInt32,
     CircuitValue,
     prop,
+    MerkleTree,
+    MerkleWitness,
+    PrivateKey,
+    UInt64
   } from 'snarkyjs';
     import {answers as answers} from "./curriculum/curriculum.js"
 
   await isReady;
-    class MerkleWitness extends Experimental.MerkleWitness(8) {}
+  let initialBalance = 10_000_000_000;
+
+    class MyMerkleWitness extends MerkleWitness(8) {}
 
   // we need the initiate tree root in order to tell the contract about our off-chain storage
     let initialCommitment: Field = Field(0);
@@ -33,14 +39,14 @@ import {
         }
       }
 
-    const answerTree = new Experimental.MerkleTree(8);
+    const answerTree = new MerkleTree(8);
     let Answers: Map<number, Answer> = new Map<number, Answer>();
     function createMerkleTree(){
         let committment: Field = Field(0);
 
         let Answers: Map<number, Answer> = new Map<number, Answer>();
         for(let i in answers){
-            let thisAnswer = new Answer(UInt32.fromNumber(answers[i].answer));
+            let thisAnswer = new Answer(UInt32.from(answers[i].answer));
             Answers.set(parseInt(i), thisAnswer);
             answerTree.setLeaf(BigInt(i), thisAnswer.hash());
         }
@@ -62,20 +68,24 @@ import {
         ...Permissions.default(),
         editState: Permissions.proofOrSignature(),
       });
+      this.totalQuestions.set(Field(5));
       initialCommitment = createMerkleTree();
+      this.balance.addInPlace(UInt64.from(initialBalance));
+
       this.commitment.set(initialCommitment);
     }
   
-    @method init() {
-      this.highestScore.set(Field(0));
-      this.totalQuestions.set(Field(5));
-    }
+    // @method init(zkappKey: PrivateKey) {
+    //   super.init(zkappKey);
+    //   this.highestScore.set(Field(0));
+    //   this.totalQuestions.set(Field(5));
+    // }
 
     @method validateQuestionResponse(response: Field, answerIndex: Field){
         //check if response hashes to the correctAnswer hash
         // Poseidon.hash([response]).assertEquals(correctAnswer);
         let w = answerTree.getWitness(answerIndex.toBigInt()); //QUESTION: should this be here or back in main.ts?
-        let witness = new MerkleWitness(w);
+        let witness = new MyMerkleWitness(w);
         // we fetch the on-chain commitment
         let commitment = this.commitment.get();
         this.commitment.assertEquals(commitment);
@@ -85,30 +95,6 @@ import {
 
     
     }
-
-    // guessPreimage(guess: Field, account: Account, path: MerkleWitness) {
-    //     // this is our hash! its the hash of the preimage "22", but keep it a secret!
-    //     let target = Field(
-    //       '17057234437185175411792943285768571642343179330449434169483610110583519635705'
-    //     );
-    //     // if our guess preimage hashes to our target, we won a point!
-    //     Poseidon.hash([guess]).assertEquals(target);
-    
-    //     // we fetch the on-chain commitment
-    //     let commitment = this.commitment.get();
-    //     this.commitment.assertEquals(commitment);
-    
-    //     // we check that the account is within the committed Merkle Tree
-    //     path.calculateRoot(account.hash()).assertEquals(commitment);
-    
-    //     // we update the account and grant one point!
-    //     let newAccount = account.addPoints(1);
-    
-    //     // we calculate the new Merkle Root, based on the account changes
-    //     let newCommitment = path.calculateRoot(newAccount.hash());
-    
-    //     this.commitment.set(newCommitment);
-    //   }
 
     @method updateHighestScore(score: Field){
         const currentHighScore = this.highestScore.get();

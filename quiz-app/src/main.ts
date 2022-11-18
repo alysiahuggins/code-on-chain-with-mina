@@ -13,11 +13,14 @@ import {
   prop,
   Poseidon,
   PublicKey,
+  MerkleWitness,
 } from 'snarkyjs';
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 await isReady;
-class MerkleWitness extends Experimental.MerkleWitness(8) {}
+const doProofs = true;
+
+class MyMerkleWitness extends MerkleWitness(8) {}
 
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 // let initialCommitment: Field = Field(0);
@@ -53,10 +56,16 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
 (async function main (){
     // await isReady;
     console.log('SnarkyJS is ready');
-    const Local = Mina.LocalBlockchain();
+    const Local = Mina.LocalBlockchain({ proofsEnabled: doProofs });
     Mina.setActiveInstance(Local);
     const deployerAccount = Local.testAccounts[0].privateKey;
+    // a test account that pays all the fees, and puts additional funds into the zkapp
+    let feePayer = Local.testAccounts[0].privateKey;
+    let initialBalance = 10_000_000_000;
 
+    // the zkapp account
+  let zkappKey = PrivateKey.random();
+  let zkappAddress = zkappKey.toPublicKey();
     // --------------
     // Creating the tree of questions and answers
     // this map serves as our off-chain in-memory storage
@@ -85,19 +94,52 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
   const zkAppAddress = zkAppPrivateKey.toPublicKey();
   // Create an instance of our Square smart contract and deploy it to zkAppAddress
   const contract = new Quiz(zkAppAddress);
-  const deployTxn = await Mina.transaction(deployerAccount, () => {
-    AccountUpdate.fundNewAccount(deployerAccount);
-    contract.deploy({ zkappKey: zkAppPrivateKey});
-    contract.init();
-    contract.sign(zkAppPrivateKey);
-  });
-
   
-  await deployTxn.send().wait();
-  // Get the initial state of our zkApp account after deployment
-  const highestScore = contract.highestScore.get();
+    // if (doProofs) {
+    //   console.log('compile');
+    //   await Quiz.compile();
 
-  console.log('state after init:', highestScore.toString());
+      
+    // }
+
+    let tx = await Mina.transaction(feePayer, () => {
+      AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+      contract.deploy({ zkappKey });
+    });
+    await tx.send();
+ 
+  // try{
+  //   const deployTxn = await Mina.transaction(deployerAccount, () => {
+  //     AccountUpdate.fundNewAccount(deployerAccount, {
+  //       initialBalance: Mina.accountCreationFee().add(
+  //         Mina.accountCreationFee()
+  //       ),
+  //     });
+  //     contract.deploy({ zkappKey});
+  //     contract.init(zkappKey);
+  //     // contract.sign(zkAppPrivateKey);
+  //   });
+  
+  //   // await deployTxn.prove();
+  //   await deployTxn.send();
+  //   // Get the initial state of our zkApp account after deployment
+  //   const highestScore = contract.highestScore.get();
+  
+  //   console.log('state after init:', highestScore.toString());
+
+  // }catch(e){
+  //   console.log(e);
+  // }
+    
+  // console.log('deploy');
+  // let tx = await Mina.transaction(feePayer, () => {
+  //   AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+  //   contract.deploy({ zkappKey });
+  // });
+  // await tx.prove();
+  // await tx.send();
+  
+  
   // ----------------------------------------------------
   var retry = true;
   var retryCount = 0;
@@ -112,7 +154,7 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
                 contract.sign(zkAppPrivateKey);
             });
             console.log(`Sending blockchain transaction for question ${i}\n`)
-            await txn.send().wait();
+            await txn.send();
             pass = true;
             retry = false;
         }
@@ -177,16 +219,16 @@ class MerkleWitness extends Experimental.MerkleWitness(8) {}
 //   let w = answerTree.getWitness(BigInt(0));
 //   let witness = new MerkleWitness(w);
 //   console.log(witness.calculateRoot(Poseidon.hash([Field(1)])).assertEquals(initialCommitment));
-    const txn2 = await Mina.transaction(deployerAccount, () => {
+/*    const txn2 = await Mina.transaction(deployerAccount, () => {
         contract.validateQuestionResponse(Field(3), Field(0));
         contract.sign(zkAppPrivateKey);
     });
-  await txn2.send().wait();
+  await txn2.send();
   console.log('Shutting down')
 
     await shutdown();
 
-
+*/
 })();
 
 async function answerQuestion() {
