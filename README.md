@@ -36,10 +36,14 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 - Offchain questions and answers DONE
 - Offchain questions and answers stored on chain with merkle trees DONE
 - Reward user with token at the end of each module
+- Claim1: Store Users Name and Password in a Merkle Tree so that they can claim their tokens
+- Claim2: Allow Users to supply their own Mina Address to claim tokens
 - Offchain leaderboard stored on chain with merkle trees
 - Validate smart contract code with a test suite in the client
 - Valiate user response with a zkProof (thus a blockchain transaction) DONE
 - Add Tests
+
+
 - Implement Modules (entry to learning then quiz section)
 - Validate user responses with recursive zkProofs (One blockchain transaction per module)
 - Retrieve questions & answers from IPFS for merkle tree
