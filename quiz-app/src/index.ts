@@ -1,3 +1,3 @@
 import { Quiz } from './Quiz.js';
-
-export { Quiz };
+import { QuizToken } from './QuizToken.js';
+export { Quiz, QuizToken};

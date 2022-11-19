@@ -30,8 +30,10 @@ import {
   AccountUpdate,
   MerkleTree,
   MerkleWitness,
+  shutdown,
 } from 'snarkyjs';
 import { Quiz } from './Quiz.js';
+import { QuizToken } from './QuizToken.js';
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
@@ -158,6 +160,8 @@ initialCommitment = createMerkleTree();
 
 
 let quizApp = new Quiz2(zkappAddress);
+let tokenZkApp = new QuizToken(zkappAddress);
+let tokenId = tokenZkApp.token.id;
 console.log('Deploying QuizApp..');
 try{
   if (doProofs) {
@@ -172,6 +176,17 @@ try{
   await tx.send();
   const highestScore = quizApp.highestScore.get();
   console.log('state after init:', highestScore.toString());
+
+  console.log('compile (TokenContract)');
+  await QuizToken.compile();
+  
+  
+  console.log('deploy tokenZkApp');
+  tx = await Local.transaction(feePayer, () => {
+    AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+    tokenZkApp.deploy({ zkappKey: zkappKey });
+  });
+  await tx.send();
 }catch(e){
   console.log(e);
 }
@@ -223,11 +238,23 @@ try{
    }
  }
 
+ if(pass){
+  console.log("Congratulations, you won!!!");
+  var retryResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
+  retryResponse = retryResponse.toLowerCase().trim();
+  if(retryResponse!='no') {
+    retry = false;
+    console.log(`Sending tokens to ${retryResponse}`);
+}
+ }
+
  var score = 0;
  if(retryCount == 0) score = 10;
  else if(retryCount == 1) score = 5;
  else if(retryCount == 2) score = 2;
  else if(retryCount == 3) score = 1;
  else if(retryCount >= 4) score = 0;
+
+ shutdown();
 
 })();

@@ -18,7 +18,7 @@ import {
   
   await isReady;
   
-  class TokenContract extends SmartContract {
+  class QuizToken extends SmartContract {
     deploy(args: DeployArgs) {
       super.deploy(args);
       this.setPermissions({
@@ -45,6 +45,7 @@ import {
         verificationKey
       );
       deployUpdate.sign(deployer);
+      
     }
   
     @method mint(receiverAddress: PublicKey) {
@@ -96,6 +97,7 @@ import {
   Mina.setActiveInstance(Local);
   
   let feePayer = Local.testAccounts[0].privateKey;
+  let feePayerAddress = feePayer.toPublicKey();
   let initialBalance = 10_000_000;
   
   let tokenZkAppKey = PrivateKey.random();
@@ -110,7 +112,7 @@ import {
   let tokenAccount1Key = Local.testAccounts[1].privateKey;
   let tokenAccount1 = tokenAccount1Key.toPublicKey();
   
-  let tokenZkApp = new TokenContract(tokenZkAppAddress);
+  let tokenZkApp = new QuizToken(tokenZkAppAddress);
   let tokenId = tokenZkApp.token.id;
   
   
@@ -123,8 +125,11 @@ import {
   console.log('feePayer', feePayer.toPublicKey().toBase58());
   console.log('-------------------------------------------');
   
+
+
+
   console.log('compile (TokenContract)');
-  await TokenContract.compile();
+  await QuizToken.compile();
   
   
   console.log('deploy tokenZkApp');
@@ -133,8 +138,41 @@ import {
     tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
   });
   await tx.send();
+
+//   console.log('fund another account');
+//   // Ledger.createTokenAccount(zkAppCAddress, tokenId);
+
+//   tx = await Local.transaction(feePayer, () => {
+
+//     let feePayerUpdate = AccountUpdate.createSigned(feePayer);
+//     feePayerUpdate.balance.subInPlace(initialBalance);
+//     feePayerUpdate.send({ to: zkAppCAddress, amount: initialBalance });
+
+//     // AccountUpdate.fundNewAccount(zkAppCKey, { initialBalance });
+//     // AccountUpdate.create(zkAppCAddress,tokenId);
+
+//   });
+//   await tx.send();
   
 
+//   console.log("Create new account on the ledger");
+//   Ledger.createTokenAccount(zkAppCAddress, tokenId);
+
+//   console.log('mint token to UserAccount');
+//   tx = await Local.transaction(feePayer, () => {
+//     tokenZkApp.mint(tokenZkAppAddress);
+    
+//   });
+//   await tx.prove();
+//   await tx.send();
+  
+//   console.log('getting Token balance')
+
+//   console.log(
+//     `zkAppC's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+//     Mina.getBalance(tokenZkAppAddress, tokenId).value.toBigInt()
+//   );
+  
   console.log('compile (UserAccount)');
   await UserAccount.compile();
 
@@ -146,6 +184,7 @@ import {
   console.log('deploy UserAcocunt (proof)');
   await tx.prove();
   await tx.send();
+  
   
   
   console.log('mint token to UserAccount');
@@ -183,3 +222,5 @@ import {
 //   );
   
   shutdown();
+
+  export { QuizToken };
