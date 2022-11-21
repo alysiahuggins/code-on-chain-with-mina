@@ -31,9 +31,13 @@ import {
   MerkleTree,
   MerkleWitness,
   shutdown,
+  Experimental,
+  VerificationKey,
+  Int64,
+  Ledger
 } from 'snarkyjs';
 import { Quiz } from './Quiz.js';
-import { QuizToken } from './QuizToken.js';
+// import { QuizToken } from './QuizToken.js';
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
@@ -144,6 +148,73 @@ export class Quiz2 extends SmartContract {
 }
 
 
+class QuizToken extends SmartContract {
+  deploy(args: DeployArgs) {
+    super.deploy(args);
+    this.setPermissions({
+      ...Permissions.default(),
+      send: Permissions.proof(),
+    });
+    this.balance.addInPlace(UInt64.from(initialBalance));
+  }
+
+  @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {
+    let address = deployer.toPublicKey();
+    let tokenId = this.token.id;
+    let deployUpdate = Experimental.createChildAccountUpdate(
+      this.self,
+      address,
+      tokenId
+    );
+    AccountUpdate.setValue(deployUpdate.update.permissions, {
+      ...Permissions.default(),
+      send: Permissions.proof(),
+    });
+    AccountUpdate.setValue(
+      deployUpdate.update.verificationKey,
+      verificationKey
+    );
+    deployUpdate.sign(deployer);
+    
+  }
+
+  @method mint(receiverAddress: PublicKey) {
+    let amount = UInt64.from(1_000_000);
+    this.token.mint({ address: receiverAddress, amount });
+  }
+
+  @method burn(receiverAddress: PublicKey) {
+    let amount = UInt64.from(1_000);
+    this.token.burn({ address: receiverAddress, amount });
+  }
+
+  @method sendTokens(
+    senderAddress: PublicKey,
+    receiverAddress: PublicKey,
+    callback: Experimental.Callback<any>
+  ) {
+    let senderAccountUpdate = this.approve(
+      callback,
+      AccountUpdate.Layout.AnyChildren
+    );
+    let amount = UInt64.from(1_000);
+    let negativeAmount = Int64.fromObject(
+      senderAccountUpdate.body.balanceChange
+    );
+    negativeAmount.assertEquals(Int64.from(amount).neg());
+    let tokenId = this.token.id;
+    senderAccountUpdate.body.tokenId.assertEquals(tokenId);
+    senderAccountUpdate.body.publicKey.assertEquals(senderAddress);
+    let receiverAccountUpdate = Experimental.createChildAccountUpdate(
+      this.self,
+      receiverAddress,
+      tokenId
+    );
+    receiverAccountUpdate.balance.addInPlace(amount);
+  }
+}
+
+
 (async function main (){
 type Names = 'Bob' | 'Alice' | 'Charlie' | 'Olivia';
 
@@ -151,16 +222,21 @@ let Local = Mina.LocalBlockchain();
 Mina.setActiveInstance(Local);
 
 let feePayer = Local.testAccounts[0].privateKey;
+let tokenFeePayer = Local.testAccounts[1].privateKey;
 
 // the zkapp account
 let zkappKey = PrivateKey.random();
-let zkappAddress = zkappKey.toPublicKey();
+let tokenZkAppKey = PrivateKey.random();
+let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 
+let zkappAddress = zkappKey.toPublicKey();
+let tokenFeePayerAddress = zkappKey.toPublicKey();
+console.log(`tokenFeePayerAddress ${tokenFeePayerAddress.toBase58()}`)
 initialCommitment = createMerkleTree();
 
 
 let quizApp = new Quiz2(zkappAddress);
-let tokenZkApp = new QuizToken(zkappAddress);
+let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
 let tokenId = tokenZkApp.token.id;
 console.log('Deploying QuizApp..');
 try{
@@ -182,9 +258,9 @@ try{
   
   
   console.log('deploy tokenZkApp');
-  tx = await Local.transaction(feePayer, () => {
-    AccountUpdate.fundNewAccount(feePayer, { initialBalance });
-    tokenZkApp.deploy({ zkappKey: zkappKey });
+  tx = await Local.transaction(tokenFeePayer, () => {
+    AccountUpdate.fundNewAccount(tokenFeePayer, { initialBalance });
+    tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
   });
   await tx.send();
 }catch(e){
@@ -240,12 +316,32 @@ try{
 
  if(pass){
   console.log("Congratulations, you won!!!");
-  var retryResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
-  retryResponse = retryResponse.toLowerCase().trim();
-  if(retryResponse!='no') {
+  var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
+  rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
+  if(rewardAddressResponse=='no') {
     retry = false;
-    console.log(`Sending tokens to ${retryResponse}`);
-}
+    console.log(`Thanks for playing`);
+    console.log(`create custodial account for ${rewardAddressResponse}`);
+
+  }else{
+    //send QuizToken to that address
+    try{
+      console.log(`TODO send tokens to ${rewardAddressResponse}`);
+      console.log('mint token to UserAccount');
+      let tx = await Local.transaction(tokenFeePayer, () => {
+        tokenZkApp.mint(tokenZkAppKeyAddress);
+      });
+      await tx.prove();
+      await tx.send();
+      console.log('getting Token balance')
+      console.log(
+        `zkAppB's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+        Mina.getBalance(tokenZkAppKeyAddress, tokenId).value.toBigInt()
+      );
+    }catch(e){
+      console.log(`Error sending token to ${rewardAddressResponse}`);
+    }
+  }
  }
 
  var score = 0;
