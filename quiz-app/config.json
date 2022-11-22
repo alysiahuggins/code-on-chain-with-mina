@@ -6,6 +6,13 @@
       "keyPath": "keys/berkeley.json",
       "fee": "0.1",
       "smartContract": "Quiz"
+    },
+    "berkley2": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkley2.json",
+      "fee": "0.1",
+      "smartContaract": "Quiz2",
+      "smartContract": "QuizToken"
     }
   }
 }

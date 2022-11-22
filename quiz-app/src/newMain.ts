@@ -37,7 +37,7 @@ import {
   Ledger
 } from 'snarkyjs';
 import { Quiz } from './Quiz.js';
-// import { QuizToken } from './QuizToken.js';
+import { QuizToken } from './QuizToken.js';
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
@@ -108,6 +108,8 @@ function createMerkleTree(){
 
   // now that we got our accounts set up, we need the commitment to deploy our contract!
   committment = answerTree.getRoot();
+  console.log('committment')
+  console.log(committment);
   return committment;
 }
 
@@ -129,10 +131,16 @@ export class Quiz2 extends SmartContract {
   this.commitment.set(initialCommitment);
   }
 
+  // @method setCommittment(committment: Field) {
+  //   this.commitment.set(committment);
+    
+  // }
+
   // @method init(zkappKey: PrivateKey) {
   //   super.init(zkappKey);
   //   this.highestScore.set(Field(0));
   //   this.totalQuestions.set(Field(5));
+  //   this.totalQuestions.set(Field(1));
   // }
 
   @method validateQuestionResponse(response: Field, answerIndex: Field, path: MyMerkleWitness){
@@ -147,72 +155,6 @@ export class Quiz2 extends SmartContract {
 
 }
 
-
-class QuizToken extends SmartContract {
-  deploy(args: DeployArgs) {
-    super.deploy(args);
-    this.setPermissions({
-      ...Permissions.default(),
-      send: Permissions.proof(),
-    });
-    this.balance.addInPlace(UInt64.from(initialBalance));
-  }
-
-  @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {
-    let address = deployer.toPublicKey();
-    let tokenId = this.token.id;
-    let deployUpdate = Experimental.createChildAccountUpdate(
-      this.self,
-      address,
-      tokenId
-    );
-    AccountUpdate.setValue(deployUpdate.update.permissions, {
-      ...Permissions.default(),
-      send: Permissions.proof(),
-    });
-    AccountUpdate.setValue(
-      deployUpdate.update.verificationKey,
-      verificationKey
-    );
-    deployUpdate.sign(deployer);
-    
-  }
-
-  @method mint(receiverAddress: PublicKey) {
-    let amount = UInt64.from(1_000_000);
-    this.token.mint({ address: receiverAddress, amount });
-  }
-
-  @method burn(receiverAddress: PublicKey) {
-    let amount = UInt64.from(1_000);
-    this.token.burn({ address: receiverAddress, amount });
-  }
-
-  @method sendTokens(
-    senderAddress: PublicKey,
-    receiverAddress: PublicKey,
-    callback: Experimental.Callback<any>
-  ) {
-    let senderAccountUpdate = this.approve(
-      callback,
-      AccountUpdate.Layout.AnyChildren
-    );
-    let amount = UInt64.from(1_000);
-    let negativeAmount = Int64.fromObject(
-      senderAccountUpdate.body.balanceChange
-    );
-    negativeAmount.assertEquals(Int64.from(amount).neg());
-    let tokenId = this.token.id;
-    senderAccountUpdate.body.tokenId.assertEquals(tokenId);
-    senderAccountUpdate.body.publicKey.assertEquals(senderAddress);
-    let receiverAccountUpdate = Experimental.createChildAccountUpdate(
-      this.self,
-      receiverAddress,
-      tokenId
-    );
-    receiverAccountUpdate.balance.addInPlace(amount);
-  }
-}
 
 class UserAccount extends SmartContract {
   
@@ -258,6 +200,8 @@ try{
   
   let tx = await Mina.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+    // quizApp.setCommittment(initialCommitment);
+
     quizApp.deploy({ zkappKey });
   });
   await tx.send();
@@ -278,17 +222,17 @@ try{
   console.log(e);
 }
 
-console.log('compile (UserAccount)');
-  await UserAccount.compile();
+// console.log('compile (UserAccount)');
+//   await UserAccount.compile();
 
-  console.log('deploy userAccount');
-  let tx = await Local.transaction(feePayer, () => {
-    AccountUpdate.fundNewAccount(feePayer);
-    tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
-  });
-  console.log('deploy UserAcocunt (proof)');
-  await tx.prove();
-  await tx.send();
+//   console.log('deploy userAccount');
+//   let tx = await Local.transaction(feePayer, () => {
+//     AccountUpdate.fundNewAccount(feePayer);
+//     tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
+//   });
+//   console.log('deploy UserAcocunt (proof)');
+//   await tx.prove();
+//   await tx.send();
 
   
 
