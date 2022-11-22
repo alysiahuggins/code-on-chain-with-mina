@@ -173,17 +173,17 @@ import {
 //     Mina.getBalance(tokenZkAppAddress, tokenId).value.toBigInt()
 //   );
   
-  console.log('compile (UserAccount)');
-  await UserAccount.compile();
+  // console.log('compile (UserAccount)');
+  // await UserAccount.compile();
 
-  console.log('deploy userAccount');
-  tx = await Local.transaction(feePayer, () => {
-    AccountUpdate.fundNewAccount(feePayer);
-    tokenZkApp.tokenDeploy(zkAppBKey, UserAccount._verificationKey!);
-  });
-  console.log('deploy UserAcocunt (proof)');
-  await tx.prove();
-  await tx.send();
+  // console.log('deploy userAccount');
+  // tx = await Local.transaction(feePayer, () => {
+  //   AccountUpdate.fundNewAccount(feePayer);
+  //   tokenZkApp.tokenDeploy(zkAppBKey, UserAccount._verificationKey!);
+  // });
+  // console.log('deploy UserAcocunt (proof)');
+  // await tx.prove();
+  // await tx.send();
   
   
   

@@ -214,6 +214,14 @@ class QuizToken extends SmartContract {
   }
 }
 
+class UserAccount extends SmartContract {
+  
+  @method approveSend() {
+    let amount = UInt64.from(1_000);
+    this.balance.subInPlace(amount);
+  }
+}
+
 
 (async function main (){
 type Names = 'Bob' | 'Alice' | 'Charlie' | 'Olivia';
@@ -227,9 +235,12 @@ let tokenFeePayer = Local.testAccounts[1].privateKey;
 // the zkapp account
 let zkappKey = PrivateKey.random();
 let tokenZkAppKey = PrivateKey.random();
+let winnerKey = PrivateKey.random();
 let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 
+
 let zkappAddress = zkappKey.toPublicKey();
+let winnerKeyAddress = winnerKey.toPublicKey();
 let tokenFeePayerAddress = zkappKey.toPublicKey();
 console.log(`tokenFeePayerAddress ${tokenFeePayerAddress.toBase58()}`)
 initialCommitment = createMerkleTree();
@@ -266,6 +277,20 @@ try{
 }catch(e){
   console.log(e);
 }
+
+console.log('compile (UserAccount)');
+  await UserAccount.compile();
+
+  console.log('deploy userAccount');
+  let tx = await Local.transaction(feePayer, () => {
+    AccountUpdate.fundNewAccount(feePayer);
+    tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
+  });
+  console.log('deploy UserAcocunt (proof)');
+  await tx.prove();
+  await tx.send();
+
+  
 
 
  // ----------------------------------------------------
@@ -316,32 +341,35 @@ try{
 
  if(pass){
   console.log("Congratulations, you won!!!");
-  var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
-  rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
-  if(rewardAddressResponse=='no') {
-    retry = false;
-    console.log(`Thanks for playing`);
-    console.log(`create custodial account for ${rewardAddressResponse}`);
 
-  }else{
-    //send QuizToken to that address
-    try{
-      console.log(`TODO send tokens to ${rewardAddressResponse}`);
-      console.log('mint token to UserAccount');
-      let tx = await Local.transaction(tokenFeePayer, () => {
-        tokenZkApp.mint(tokenZkAppKeyAddress);
-      });
-      await tx.prove();
-      await tx.send();
-      console.log('getting Token balance')
-      console.log(
-        `zkAppB's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-        Mina.getBalance(tokenZkAppKeyAddress, tokenId).value.toBigInt()
-      );
-    }catch(e){
-      console.log(`Error sending token to ${rewardAddressResponse}`);
-    }
+  try{
+    console.log(`Getting Your Token Reward ${winnerKeyAddress.toBase58()}`);
+    console.log('mint token to UserAccount');
+    let tx = await Local.transaction(feePayer, () => {
+      tokenZkApp.mint(winnerKeyAddress);
+      tokenZkApp.sign(tokenZkAppKey);
+
+    });
+    // await tx.prove();
+    await tx.send();
+    console.log('getting Token balance')
+    console.log(
+      `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+      Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+    );
+  }catch(e){
+    console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
   }
+//   var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
+//   rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
+//   if(rewardAddressResponse=='no') {
+//     retry = false;
+//     console.log(`Thanks for playing`);
+//     console.log(`create custodial account for ${rewardAddressResponse}`);
+
+//   }else{
+    
+//  }
  }
 
  var score = 0;
