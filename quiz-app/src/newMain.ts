@@ -38,6 +38,8 @@ import {
 } from 'snarkyjs';
 import { Quiz } from './Quiz.js';
 import { QuizToken } from './QuizToken.js';
+import { UserAccount } from './UserAccount.js';
+
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
@@ -50,34 +52,9 @@ const doProofs = true;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
 
-class Account extends CircuitValue {
-  @prop publicKey: PublicKey;
-  @prop points: UInt32;
-
-  constructor(publicKey: PublicKey, points: UInt32) {
-    super(publicKey, points);
-    this.publicKey = publicKey;
-    this.points = points;
-  }
-
-  hash(): Field {
-    return Poseidon.hash(this.toFields());
-  }
-
-  addPoints(n: number): Account {
-    return new Account(this.publicKey, this.points.add(n));
-  }
-}
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
 let initialBalance = 10_000_000_000;
-
-/*
-  We want to write a smart contract that serves as a leaderboard,
-  but only has the commitment of the off-chain storage stored in an on-chain variable.
-  The accounts of all participants will be stored off-chain!
-  If a participant can guess the preimage of a hash, they will be granted one point :)
-*/
 
 
 
@@ -156,13 +133,7 @@ export class Quiz2 extends SmartContract {
 }
 
 
-class UserAccount extends SmartContract {
-  
-  @method approveSend() {
-    let amount = UInt64.from(1_000);
-    this.balance.subInPlace(amount);
-  }
-}
+
 
 
 (async function main (){
@@ -191,12 +162,13 @@ initialCommitment = createMerkleTree();
 let quizApp = new Quiz2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
 let tokenId = tokenZkApp.token.id;
-console.log('Deploying QuizApp..');
+console.log('Compiling QuizApp..');
 try{
   if (doProofs) {
     await Quiz2.compile();
   }
   
+console.log('Deploying QuizApp..');
   
   let tx = await Mina.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer, { initialBalance });
@@ -204,6 +176,8 @@ try{
 
     quizApp.deploy({ zkappKey });
   });
+  // await tx.prove();
+
   await tx.send();
   const highestScore = quizApp.highestScore.get();
   console.log('state after init:', highestScore.toString());
@@ -222,17 +196,17 @@ try{
   console.log(e);
 }
 
-// console.log('compile (UserAccount)');
-//   await UserAccount.compile();
+console.log('compile (UserAccount)');
+  await UserAccount.compile();
 
-//   console.log('deploy userAccount');
-//   let tx = await Local.transaction(feePayer, () => {
-//     AccountUpdate.fundNewAccount(feePayer);
-//     tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
-//   });
-//   console.log('deploy UserAcocunt (proof)');
-//   await tx.prove();
-//   await tx.send();
+  console.log('deploy userAccount');
+  let tx = await Local.transaction(feePayer, () => {
+    AccountUpdate.fundNewAccount(feePayer);
+    tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
+  });
+  console.log('deploy UserAcocunt (proof)');
+  await tx.prove();
+  await tx.send();
 
   
 
@@ -304,16 +278,16 @@ try{
   }catch(e){
     console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
   }
-//   var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
-//   rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
-//   if(rewardAddressResponse=='no') {
-//     retry = false;
-//     console.log(`Thanks for playing`);
-//     console.log(`create custodial account for ${rewardAddressResponse}`);
+  var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
+  rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
+  if(rewardAddressResponse=='no') {
+    retry = false;
+    console.log(`Thanks for playing`);
+    console.log(`create custodial account for ${rewardAddressResponse}`);
 
-//   }else{
+  }else{
     
-//  }
+ }
  }
 
  var score = 0;
