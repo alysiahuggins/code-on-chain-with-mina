@@ -66,5 +66,14 @@ Or is it ok to be stored offchain and verified on the client?
 - can I create a token with SnarkyJS?
 
 
-### A
+### Concepts
+
+#### Token Claims
+When the user completes the quiz and got all the questions correctly, QuizTokens are minted to an address that we control.
+Users can claim these tokens to their address when they want, in the meanwhile, the user's username and password is stored in a merkletree.
+
+
+### Errors and Workarounds
+#### Stackoverflow
+- When I tried to compile a Merkle Tree of size 1000
 

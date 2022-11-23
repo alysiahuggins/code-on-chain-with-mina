@@ -34,7 +34,8 @@ import {
   Experimental,
   VerificationKey,
   Int64,
-  Ledger
+  Ledger,
+  CircuitString
 } from 'snarkyjs';
 import { Quiz } from './Quiz.js';
 import { QuizToken } from './QuizToken.js';
@@ -51,9 +52,13 @@ await isReady;
 const doProofs = true;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
+class ClaimAccountMerkleWithness extends MerkleWitness(8) {}
 
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
+let initialClaimTreeCommittment: Field = Field(0);
+
+
 let initialBalance = 10_000_000_000;
 
 
@@ -71,8 +76,35 @@ class Answer extends CircuitValue {
   }
 }
 
+// this map serves as our off-chain in-memory storage
+class Account extends CircuitValue {
+  @prop username: CircuitString;
+  @prop password: Field;
+  @prop claimed: Field;
+
+  constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+    super(username, password, claimed);
+    this.username = username;
+    this.password = Poseidon.hash(password.toFields());
+    this.claimed = claimed;
+  }
+
+  hash(): Field {
+    return Poseidon.hash(this.toFields());
+  }
+
+  setClaimed(claimed: Field) {
+    this.claimed = claimed;
+  }
+}
+
 const answerTree = new MerkleTree(8);
+const claimAccountTree = new MerkleTree(8);
+
 let Answers: Map<number, Answer> = new Map<number, Answer>();
+let Accounts: Map<string, Account> = new Map<string, Account>();
+let usernames: Array<string> = new Array<string>();
+
 function createMerkleTree(){
   let committment: Field = Field(0);
 
@@ -85,6 +117,25 @@ function createMerkleTree(){
 
   // now that we got our accounts set up, we need the commitment to deploy our contract!
   committment = answerTree.getRoot();
+  console.log('committment')
+  console.log(committment);
+  return committment;
+}
+
+
+
+
+function createClaimAccountMerkleTree(username: string, password: string){
+  let committment: Field = Field(0);
+
+  let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+
+  usernames[usernames.length] = username;
+  Accounts.set(username, account);
+  claimAccountTree.setLeaf(BigInt(0), account.hash());
+
+  // now that we got our accounts set up, we need the commitment to deploy our contract!
+  committment = claimAccountTree.getRoot();
   console.log('committment')
   console.log(committment);
   return committment;
@@ -132,11 +183,49 @@ export class Quiz2 extends SmartContract {
 
 }
 
+export class ClaimAccountSC extends SmartContract {
+  @state(Field) commitment = State<Field>();
+
+  deploy(args: DeployArgs) {
+    super.deploy(args);
+    this.setPermissions({
+      ...Permissions.default(),
+      editState: Permissions.proofOrSignature(),
+    });
+    this.balance.addInPlace(UInt64.from(initialBalance));
+    this.commitment.set(initialClaimTreeCommittment);
+  }
+
+  // @method setCommittment(committment: Field) {
+  //   this.commitment.set(committment);
+    
+  // }
+
+  // @method init(zkappKey: PrivateKey) {
+  //   super.init(zkappKey);
+  //   this.highestScore.set(Field(0));
+  //   this.totalQuestions.set(Field(5));
+  //   this.totalQuestions.set(Field(1));
+  // }
+
+  @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWithness){
+
+    let commitment = this.commitment.get();
+    this.commitment.assertEquals(commitment);
+
+    // we check that the response is the same as the hash of the answer at that path
+    path.calculateRoot(Poseidon.hash(account.toFields())).assertEquals(commitment);
+
+  }
+
+}
+
 
 
 
 
 (async function main (){
+
 type Names = 'Bob' | 'Alice' | 'Charlie' | 'Olivia';
 
 let Local = Mina.LocalBlockchain();
@@ -147,23 +236,71 @@ let tokenFeePayer = Local.testAccounts[1].privateKey;
 
 // the zkapp account
 let zkappKey = PrivateKey.random();
+
 let tokenZkAppKey = PrivateKey.random();
 let winnerKey = PrivateKey.random();
 let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 
 
 let zkappAddress = zkappKey.toPublicKey();
+
 let winnerKeyAddress = winnerKey.toPublicKey();
 let tokenFeePayerAddress = zkappKey.toPublicKey();
 console.log(`tokenFeePayerAddress ${tokenFeePayerAddress.toBase58()}`)
+
 initialCommitment = createMerkleTree();
 
 
 let quizApp = new Quiz2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
+let claimAccountApp = new ClaimAccountSC(zkappAddress);
 let tokenId = tokenZkApp.token.id;
-console.log('Compiling QuizApp..');
 try{
+  initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
+
+console.log('Compiling ClaimAccountApp..');
+
+
+  if (doProofs) {
+    await ClaimAccountSC.compile();
+  }
+
+  
+console.log('Deploying ClaimAccountApp..');
+  
+  let mytx = await Mina.transaction(feePayer, () => {
+    AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+    // quizApp.setCommittment(initialCommitment);
+
+    claimAccountApp.deploy({ zkappKey });
+  });
+  // await tx.prove();
+
+  await mytx.send();
+  let username = 'alysia';
+  let account = Accounts.get(username)!;
+  let usernameIndex = usernames.findIndex((obj) => {
+    return obj === username;
+  })!;
+  console.log(usernameIndex);
+  let w = claimAccountTree.getWitness(BigInt(usernameIndex));
+       let witness = new ClaimAccountMerkleWithness(w);
+       
+           let txn = await Mina.transaction(feePayer, () => {
+               claimAccountApp.validateAccountPassword(account, witness);
+               claimAccountApp.sign(zkappKey);
+
+           });
+           console.log(`Proving blockchain transaction\n`)
+           if (doProofs) {
+                await txn.prove();
+              }
+              console.log(`Sending blockchain transaction\n`)
+           await txn.send();
+           console.log('Found');
+           
+console.log('Compiling QuizApp..');
+
   if (doProofs) {
     await Quiz2.compile();
   }
@@ -192,21 +329,23 @@ console.log('Deploying QuizApp..');
     tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
   });
   await tx.send();
-}catch(e){
-  console.log(e);
-}
 
-console.log('compile (UserAccount)');
+  console.log('compile (UserAccount)');
   await UserAccount.compile();
 
   console.log('deploy userAccount');
-  let tx = await Local.transaction(feePayer, () => {
+   tx = await Local.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer);
     tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
   });
   console.log('deploy UserAcocunt (proof)');
   await tx.prove();
   await tx.send();
+
+}catch(e){
+  console.log(e);
+}
+
 
   
 
