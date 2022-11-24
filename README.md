@@ -77,3 +77,24 @@ Users can claim these tokens to their address when they want, in the meanwhile, 
 #### Stackoverflow
 - When I tried to compile a Merkle Tree of size 1000
 
+
+#### invalid fee excess
+```deploy tokenZkApp
+Error: Invalid fee excess.
+This means that balance changes in your transaction do not sum up to the amount of fees needed.
+Here's the list of balance changes:
+
+Account update #1) -101.00 MINA
+Account update #2) 10.00 MINA
+
+Total change: -91.00 MINA```
+
+what caused it: i used the same zkAppAddress in the deploy args for more than one smart contract
+solution: use different zkAppAddress in deploy args for various smart contracts
+
+
+#### Error: Transaction verification failed: Cannot update field 'incrementNonce' because permission for this field is 'Signature', but the required authorization was not provided or is invalid.
+You are using a different address 
+
+problem: signing a transaction with the key that did not do the deployment, instead sign with that key or just do tx.prove()
+

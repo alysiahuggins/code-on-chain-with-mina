@@ -37,7 +37,6 @@ import {
   Ledger,
   CircuitString
 } from 'snarkyjs';
-import { Quiz } from './Quiz.js';
 import { QuizToken } from './QuizToken.js';
 import { UserAccount } from './UserAccount.js';
 
@@ -117,11 +116,8 @@ function createMerkleTree(){
 
   // now that we got our accounts set up, we need the commitment to deploy our contract!
   committment = answerTree.getRoot();
-  console.log('committment')
-  console.log(committment);
   return committment;
 }
-
 
 
 
@@ -136,8 +132,7 @@ function createClaimAccountMerkleTree(username: string, password: string){
 
   // now that we got our accounts set up, we need the commitment to deploy our contract!
   committment = claimAccountTree.getRoot();
-  console.log('committment')
-  console.log(committment);
+  
   return committment;
 }
 
@@ -171,14 +166,13 @@ export class Quiz2 extends SmartContract {
   //   this.totalQuestions.set(Field(1));
   // }
 
-  @method validateQuestionResponse(response: Field, answerIndex: Field, path: MyMerkleWitness){
+  @method validateQuestionResponse(response: Field, path: MyMerkleWitness){
     
     let commitment = this.commitment.get();
     this.commitment.assertEquals(commitment);
 
     // we check that the response is the same as the hash of the answer at that path
     path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(commitment);
-
   }
 
 }
@@ -196,18 +190,7 @@ export class ClaimAccountSC extends SmartContract {
     this.commitment.set(initialClaimTreeCommittment);
   }
 
-  // @method setCommittment(committment: Field) {
-  //   this.commitment.set(committment);
-    
-  // }
-
-  // @method init(zkappKey: PrivateKey) {
-  //   super.init(zkappKey);
-  //   this.highestScore.set(Field(0));
-  //   this.totalQuestions.set(Field(5));
-  //   this.totalQuestions.set(Field(1));
-  // }
-
+  
   @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWithness){
 
     let commitment = this.commitment.get();
@@ -215,6 +198,22 @@ export class ClaimAccountSC extends SmartContract {
 
     // we check that the response is the same as the hash of the answer at that path
     path.calculateRoot(Poseidon.hash(account.toFields())).assertEquals(commitment);
+
+  }
+
+  @method createAccount(account:Account, path: MyMerkleWitness){
+    
+    let commitment = this.commitment.get();
+    this.commitment.assertEquals(commitment);
+
+    // we check that the account is not in the tree
+    try{
+      path.calculateRoot(Poseidon.hash(account.toFields())).assertEquals(commitment);
+    }catch(e){
+      //assert failed which is what we expect so now we create the account in the tree
+      let newCommitment = path.calculateRoot(account.hash());
+      this.commitment.set(newCommitment);
+    }
 
   }
 
@@ -233,32 +232,33 @@ Mina.setActiveInstance(Local);
 
 let feePayer = Local.testAccounts[0].privateKey;
 let tokenFeePayer = Local.testAccounts[1].privateKey;
+let claimAccountFeePayer = Local.testAccounts[2].privateKey;
+
 
 // the zkapp account
 let zkappKey = PrivateKey.random();
 
 let tokenZkAppKey = PrivateKey.random();
 let winnerKey = PrivateKey.random();
+let userAccountKey = PrivateKey.random();
 let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 
 
 let zkappAddress = zkappKey.toPublicKey();
 
 let winnerKeyAddress = winnerKey.toPublicKey();
-let tokenFeePayerAddress = zkappKey.toPublicKey();
-console.log(`tokenFeePayerAddress ${tokenFeePayerAddress.toBase58()}`)
 
 initialCommitment = createMerkleTree();
 
 
 let quizApp = new Quiz2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
-let claimAccountApp = new ClaimAccountSC(zkappAddress);
+let claimAccountApp = new ClaimAccountSC(winnerKeyAddress);
 let tokenId = tokenZkApp.token.id;
 try{
   initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
 
-console.log('Compiling ClaimAccountApp..');
+  // console.log('Compiling ClaimAccountApp..');
 
 
   if (doProofs) {
@@ -266,39 +266,21 @@ console.log('Compiling ClaimAccountApp..');
   }
 
   
-console.log('Deploying ClaimAccountApp..');
+  console.log('Deploying ClaimAccountApp..');
   
-  let mytx = await Mina.transaction(feePayer, () => {
-    AccountUpdate.fundNewAccount(feePayer, { initialBalance });
+  let mytx = await Mina.transaction(claimAccountFeePayer, () => {
+    AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
     // quizApp.setCommittment(initialCommitment);
 
-    claimAccountApp.deploy({ zkappKey });
+    claimAccountApp.deploy({  zkappKey: winnerKey  });
   });
   // await tx.prove();
 
   await mytx.send();
-  let username = 'alysia';
-  let account = Accounts.get(username)!;
-  let usernameIndex = usernames.findIndex((obj) => {
-    return obj === username;
-  })!;
-  console.log(usernameIndex);
-  let w = claimAccountTree.getWitness(BigInt(usernameIndex));
-       let witness = new ClaimAccountMerkleWithness(w);
-       
-           let txn = await Mina.transaction(feePayer, () => {
-               claimAccountApp.validateAccountPassword(account, witness);
-               claimAccountApp.sign(zkappKey);
 
-           });
-           console.log(`Proving blockchain transaction\n`)
-           if (doProofs) {
-                await txn.prove();
-              }
-              console.log(`Sending blockchain transaction\n`)
-           await txn.send();
-           console.log('Found');
-           
+  console.log('account deployed');
+  
+ 
 console.log('Compiling QuizApp..');
 
   if (doProofs) {
@@ -316,8 +298,7 @@ console.log('Deploying QuizApp..');
   // await tx.prove();
 
   await tx.send();
-  const highestScore = quizApp.highestScore.get();
-  console.log('state after init:', highestScore.toString());
+  console.log('quizapp deployed')
 
   console.log('compile (TokenContract)');
   await QuizToken.compile();
@@ -336,7 +317,9 @@ console.log('Deploying QuizApp..');
   console.log('deploy userAccount');
    tx = await Local.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer);
-    tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
+    tokenZkApp.tokenDeploy(userAccountKey, UserAccount._verificationKey!);
+    tokenZkApp.sign(tokenZkAppKey);
+
   });
   console.log('deploy UserAcocunt (proof)');
   await tx.prove();
@@ -361,7 +344,7 @@ console.log('Deploying QuizApp..');
        let witness = new MyMerkleWitness(w);
        try{
            let txn = await Mina.transaction(feePayer, () => {
-               quizApp.validateQuestionResponse(Field(response), Field(parseInt(i)), witness);
+               quizApp.validateQuestionResponse(Field(response),  witness);
                 quizApp.sign(zkappKey);
 
            });
@@ -417,17 +400,78 @@ console.log('Deploying QuizApp..');
   }catch(e){
     console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
   }
-  var rewardAddressResponse = await question(`Do you have a Mina address that we can send tokens to, if so, enter it here. Otherwise, type 'no'\n`)
+  var rewardAddressResponse = await question(`Do you have an account with us?\n`)
   rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
   if(rewardAddressResponse=='no') {
-    retry = false;
-    console.log(`Thanks for playing`);
+    var rewardAddressResponse = await question(`Would you like to create an account to claim your tokens later?\n`)
+    if(rewardAddressResponse=='no') {
+      console.log(`Thanks for playing`);
+      shutdown();
+    }else{
+      var username = await question(`Please enter your username?\n`)
+      var password = await question(`Please enter your password\n`);
+
+      let numUsers = usernames.length;
+      let w = claimAccountTree.getWitness(BigInt(numUsers));
+      let witness = new ClaimAccountMerkleWithness(w);
+      let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+
+        let txn = await Mina.transaction(claimAccountFeePayer, () => {
+          claimAccountApp.createAccount(account, witness);
+          claimAccountApp.sign(winnerKey);
+
+      });
+      console.log(`Proving blockchain transaction\n`)
+      if (doProofs) {
+            await txn.prove();
+          }
+      console.log(`Sending blockchain transaction\n`)
+      await txn.send();
+      console.log('Account Created');
+
+      //update local storage
+      claimAccountTree.setLeaf(BigInt(numUsers), account.hash());
+      claimAccountApp.commitment.get().assertEquals(claimAccountTree.getRoot());
+      usernames[usernames.length] = username;
+    }
     console.log(`create custodial account for ${rewardAddressResponse}`);
 
   }else{
-    
+    var rewardAddressResponse = await question(`Would you like to claim your rewards now??\n`);
+    if(rewardAddressResponse=='no') {
+      console.log(`Thanks for playing`);
+      shutdown();
+    }else{
+      var username = await question(`Please enter your username?\n`)
+      var password = await question(`Please enter your password\n`);
+      let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+      let usernameIndex = usernames.findIndex((obj) => {
+          return obj === username;
+        })!;
+      
+      let w = claimAccountTree.getWitness(BigInt(usernameIndex));
+      let witness = new ClaimAccountMerkleWithness(w);
+        
+
+      let txn = await Mina.transaction(feePayer, () => {
+        claimAccountApp.validateAccountPassword(account, witness);
+        claimAccountApp.sign(winnerKey);
+
+      });
+      console.log(`Proving blockchain transaction\n`)
+      if (doProofs) {
+            await txn.prove();
+      }
+      console.log(`Sending blockchain transaction\n`)
+      await txn.send();
+      console.log('Found');
+      console.log(`TODO process claim - send tokens to the address that they specify`)
+      console.log(`TODO store usernames locally in file in app`)
+
+
+    }
  }
- }
+}
 
  var score = 0;
  if(retryCount == 0) score = 10;
@@ -438,4 +482,7 @@ console.log('Deploying QuizApp..');
 
  shutdown();
 
+ 
+
 })();
+
