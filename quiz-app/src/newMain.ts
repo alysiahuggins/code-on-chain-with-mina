@@ -240,6 +240,8 @@ let zkappKey = PrivateKey.random();
 
 let tokenZkAppKey = PrivateKey.random();
 let winnerKey = PrivateKey.random();
+let claimAccountKey = PrivateKey.random();
+
 let userAccountKey = PrivateKey.random();
 let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 
@@ -247,13 +249,15 @@ let tokenZkAppKeyAddress = tokenZkAppKey.toPublicKey();
 let zkappAddress = zkappKey.toPublicKey();
 
 let winnerKeyAddress = winnerKey.toPublicKey();
+let claimAccountAddress = claimAccountKey.toPublicKey();
+let userAccountAddress = userAccountKey.toPublicKey();
 
 initialCommitment = createMerkleTree();
 
 
 let quizApp = new Quiz2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
-let claimAccountApp = new ClaimAccountSC(winnerKeyAddress);
+let claimAccountApp = new ClaimAccountSC(claimAccountAddress);
 let tokenId = tokenZkApp.token.id;
 try{
   initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
@@ -272,7 +276,7 @@ try{
     AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
     // quizApp.setCommittment(initialCommitment);
 
-    claimAccountApp.deploy({  zkappKey: winnerKey  });
+    claimAccountApp.deploy({  zkappKey: claimAccountKey  });
   });
   // await tx.prove();
 
@@ -317,8 +321,7 @@ console.log('Deploying QuizApp..');
   console.log('deploy userAccount');
    tx = await Local.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer);
-    tokenZkApp.tokenDeploy(userAccountKey, UserAccount._verificationKey!);
-    tokenZkApp.sign(tokenZkAppKey);
+    tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
 
   });
   console.log('deploy UserAcocunt (proof)');
@@ -399,6 +402,7 @@ console.log('Deploying QuizApp..');
     );
   }catch(e){
     console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
+    console.log(e);
   }
   var rewardAddressResponse = await question(`Do you have an account with us?\n`)
   rewardAddressResponse = rewardAddressResponse.toLowerCase().trim();
@@ -418,7 +422,7 @@ console.log('Deploying QuizApp..');
 
         let txn = await Mina.transaction(claimAccountFeePayer, () => {
           claimAccountApp.createAccount(account, witness);
-          claimAccountApp.sign(winnerKey);
+          claimAccountApp.sign(claimAccountKey);
 
       });
       console.log(`Proving blockchain transaction\n`)
@@ -455,7 +459,7 @@ console.log('Deploying QuizApp..');
 
       let txn = await Mina.transaction(feePayer, () => {
         claimAccountApp.validateAccountPassword(account, witness);
-        claimAccountApp.sign(winnerKey);
+        claimAccountApp.sign(claimAccountKey);
 
       });
       console.log(`Proving blockchain transaction\n`)
@@ -465,7 +469,9 @@ console.log('Deploying QuizApp..');
       console.log(`Sending blockchain transaction\n`)
       await txn.send();
       console.log('Found');
+      
       console.log(`TODO process claim - send tokens to the address that they specify`)
+      
       console.log(`TODO store usernames locally in file in app`)
 
 
