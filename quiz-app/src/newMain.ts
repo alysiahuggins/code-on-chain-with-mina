@@ -324,10 +324,10 @@ console.log('Deploying QuizApp..');
    tx = await Local.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer);
     tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
-
+    tokenZkApp.sign(tokenZkAppKey);
   });
   console.log('deploy UserAcocunt (proof)');
-  await tx.prove();
+  await tx.prove(); 
   await tx.send();
 
 }catch(e){
