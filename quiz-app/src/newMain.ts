@@ -259,6 +259,8 @@ let quizApp = new Quiz2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
 let claimAccountApp = new ClaimAccountSC(claimAccountAddress);
 let tokenId = tokenZkApp.token.id;
+let userAccountApp = new UserAccount(winnerKeyAddress, tokenId);
+
 try{
   initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
 
@@ -470,8 +472,33 @@ console.log('Deploying QuizApp..');
       await txn.send();
       console.log('Found');
       
-      console.log(`TODO process claim - send tokens to the address that they specify`)
-      
+      console.log(`process claim - send tokens to the address that they specify`)
+      try{
+        let tx = await Local.transaction(feePayer, () => {
+          let approveSendingCallback = Experimental.Callback.create(
+            userAccountApp,
+            'approveSend',
+            []
+          );
+          // we call the token contract with the callback
+          tokenZkApp.sendTokens(winnerKeyAddress, winnerKeyAddress, approveSendingCallback);
+          tokenZkApp.sign(tokenZkAppKey);
+
+        });
+        console.log('approve send (proof)');
+        await tx.prove();
+        console.log('send (proof)');
+        await tx.send();
+        console.log('token sent getting Token balance')
+        console.log(
+        `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+        Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+    );
+      }catch(e){
+        console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
+        console.log(e);
+      }
+
       console.log(`TODO store usernames locally in file in app`)
 
 
