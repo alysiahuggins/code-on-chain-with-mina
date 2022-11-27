@@ -1,7 +1,8 @@
-import '../styles/globals.css'
+import '../styles/globals.css';
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
-
+import { Container, Row, Col, Button, Card, Form } from 'react-bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
 import ZkappWorkerClient from './zkappWorkerClient';
 
 import {
@@ -160,27 +161,30 @@ export default function App() {
   if (state.hasWallet != null && !state.hasWallet) {
     const auroLink = 'https://www.aurowallet.com/';
     const auroLinkElem = <a href={auroLink} target="_blank" rel="noreferrer"> [Link] </a>
-    hasWallet = <div> Could not find a wallet. Install Auro wallet here: { auroLinkElem }</div> 
+    hasWallet = <Container> Could not find a wallet. Install Auro wallet here: { auroLinkElem }</Container> 
   }
 
   let setupText = state.hasBeenSetup ? 'SnarkyJS Ready' : 'Setting up SnarkyJS...';
-  let setup = <div> { setupText } { hasWallet }</div>
+  let setup = <Container> { setupText } { hasWallet }</Container>
 
   let accountDoesNotExist;
   if (state.hasBeenSetup && !state.accountExists) {
     const faucetLink = "https://faucet.minaprotocol.com/?address=" + state.publicKey!.toBase58();
-    accountDoesNotExist = <div>
+    accountDoesNotExist = <Container>
       Account does not exist. Please visit the faucet to fund this account
       <a href={faucetLink} target="_blank" rel="noreferrer"> [Link] </a>
-    </div>
+    </Container>
   }
 
   let mainContent;
   if (state.hasBeenSetup && state.accountExists) {
-    mainContent = <div>
-      <button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </button>
+    mainContent = 
+    <div>
+    <Container>
+      <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
       <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
-      <button onClick={onRefreshCurrentNum}> Get Latest State </button>
+      <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
+    </Container>
     </div>
   }
 
