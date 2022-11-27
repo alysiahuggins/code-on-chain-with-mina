@@ -38,12 +38,15 @@ import {
   CircuitString
 } from 'snarkyjs';
 import { QuizToken } from './QuizToken.js';
+import { QuizV2 } from './QuizV2.js';
+
 import { UserAccount } from './UserAccount.js';
 
 import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
 import {answers as answers} from "./curriculum/curriculum.js"
+import { ContractFunctionVisibility } from 'hardhat/internal/hardhat-network/stack-traces/model.js';
 
 
 await isReady;
@@ -151,13 +154,8 @@ export class Quiz2 extends SmartContract {
   this.totalQuestions.set(Field(5));
   this.balance.addInPlace(UInt64.from(initialBalance));
 
-  this.commitment.set(initialCommitment);
+  // this.commitment.set(this.createMerkleTree());
   }
-
-  // @method setCommittment(committment: Field) {
-  //   this.commitment.set(committment);
-    
-  // }
 
   // @method init(zkappKey: PrivateKey) {
   //   super.init(zkappKey);
@@ -165,6 +163,27 @@ export class Quiz2 extends SmartContract {
   //   this.totalQuestions.set(Field(5));
   //   this.totalQuestions.set(Field(1));
   // }
+
+  init(){
+    super.init();
+    this.commitment.set(this.createMerkleTree());
+  }
+
+  createMerkleTree(){
+    let committment: Field = Field(0);
+  
+    let Answers: Map<number, Answer> = new Map<number, Answer>();
+    for(let i in answers){
+        let thisAnswer = new Answer(UInt32.from(answers[i].answer));
+        Answers.set(parseInt(i), thisAnswer);
+        answerTree.setLeaf(BigInt(i), thisAnswer.hash());
+    }
+  
+    // now that we got our accounts set up, we need the commitment to deploy our contract!
+    committment = answerTree.getRoot();
+    return committment;
+  }
+  
 
   @method validateQuestionResponse(response: Field, path: MyMerkleWitness){
     
@@ -255,7 +274,7 @@ let userAccountAddress = userAccountKey.toPublicKey();
 initialCommitment = createMerkleTree();
 
 
-let quizApp = new Quiz2(zkappAddress);
+let quizApp = new QuizV2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
 let claimAccountApp = new ClaimAccountSC(claimAccountAddress);
 let tokenId = tokenZkApp.token.id;
@@ -266,45 +285,28 @@ try{
 
   // console.log('Compiling ClaimAccountApp..');
 
+  console.log('Compiling QuizApp..');
 
   if (doProofs) {
-    await ClaimAccountSC.compile();
+    await QuizV2.compile();
   }
-
-  
-  console.log('Deploying ClaimAccountApp..');
-  
-  let mytx = await Mina.transaction(claimAccountFeePayer, () => {
-    AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
-    // quizApp.setCommittment(initialCommitment);
-
-    claimAccountApp.deploy({  zkappKey: claimAccountKey  });
-  });
-  // await tx.prove();
-
-  await mytx.send();
-
-  console.log('account deployed');
-  
- 
-console.log('Compiling QuizApp..');
-
-  if (doProofs) {
-    await Quiz2.compile();
-  }
-  
-console.log('Deploying QuizApp..');
+  console.log('Deploying QuizApp..');
   
   let tx = await Mina.transaction(feePayer, () => {
     AccountUpdate.fundNewAccount(feePayer, { initialBalance });
-    // quizApp.setCommittment(initialCommitment);
-
+    // quizApp.setCommittment(initialClaimTreeCommittment);
+    // quizApp.init();
     quizApp.deploy({ zkappKey });
   });
-  // await tx.prove();
 
   await tx.send();
   console.log('quizapp deployed')
+  console.log(quizApp.commitment.get());
+  console.log(initialCommitment);
+
+  // quizApp.setCommittment(initialClaimTreeCommittment);
+  // console.log(quizApp.commitment.get());
+  // console.log(initialClaimTreeCommittment);
 
   console.log('compile (TokenContract)');
   await QuizToken.compile();
@@ -316,6 +318,29 @@ console.log('Deploying QuizApp..');
     tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
   });
   await tx.send();
+  
+
+  if (doProofs) {
+    await ClaimAccountSC.compile();
+  }
+
+  
+  console.log('Deploying ClaimAccountApp..');
+  
+  let mytx = await Mina.transaction(claimAccountFeePayer, () => {
+    AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
+    claimAccountApp.deploy({  zkappKey: claimAccountKey  });
+  });
+  // await tx.prove();
+
+  await mytx.send();
+
+  console.log('account deployed');
+  
+ 
+
+  
+
 
   console.log('compile (UserAccount)');
   await UserAccount.compile();

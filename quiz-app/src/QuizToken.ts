@@ -26,8 +26,9 @@ export class QuizToken extends SmartContract {
       this.setPermissions({
         ...Permissions.default(),
         send: Permissions.proof(),
+
       });
-      this.balance.addInPlace(UInt64.from(initialBalance));
+      this.balance.addInPlace(UInt64.from(initialBalance)); //commenting this allows it to be deployed to berkeley testnet
     }
   
     @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {

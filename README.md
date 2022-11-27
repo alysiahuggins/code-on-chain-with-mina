@@ -79,7 +79,8 @@ Users can claim these tokens to their address when they want, in the meanwhile, 
 
 
 #### invalid fee excess
-```deploy tokenZkApp
+```
+deploy tokenZkApp
 Error: Invalid fee excess.
 This means that balance changes in your transaction do not sum up to the amount of fees needed.
 Here's the list of balance changes:
@@ -87,7 +88,8 @@ Here's the list of balance changes:
 Account update #1) -101.00 MINA
 Account update #2) 10.00 MINA
 
-Total change: -91.00 MINA```
+Total change: -91.00 MINA
+```
 
 what caused it: i used the same zkAppAddress in the deploy args for more than one smart contract
 solution: use different zkAppAddress in deploy args for various smart contracts
@@ -98,3 +100,7 @@ You are using a different address
 
 problem: signing a transaction with the key that did not do the deployment, instead sign with that key or just do tx.prove()
 
+
+
+### Testnet Address
+Berkeley3 B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
