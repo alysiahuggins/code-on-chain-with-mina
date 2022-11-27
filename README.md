@@ -64,6 +64,7 @@ Or is it ok to be stored offchain and verified on the client?
 - How do I call a method from another smart contract
 - Where do I store the answers to the questions so that they stay private?
 - can I create a token with SnarkyJS?
+- How can you set the merkleRoot hash?  e.g. smartcontract deployed and you want to set the Root of your client code as the same that's on the blockchain ledger
 
 
 ### Concepts

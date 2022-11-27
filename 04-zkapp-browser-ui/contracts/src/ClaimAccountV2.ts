@@ -16,7 +16,7 @@ import {
     Permissions
   } from 'snarkyjs';
 
-await isReady;
+// await isReady;
 let initialBalance = 10_000_000_000;
 class ClaimAccountMerkleWitness extends MerkleWitness(8) {}
 const claimAccountTree = new MerkleTree(8);
@@ -69,6 +69,7 @@ export class ClaimAccountV2 extends SmartContract {
   
     
     @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWitness){
+  
       let commitment = this.commitment.get();
       this.commitment.assertEquals(commitment);
   
