@@ -305,7 +305,7 @@ let userAccountApp = new UserAccount(winnerKeyAddress, tokenId);
 try{
   initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
 
-  // console.log('Compiling ClaimAccountApp..');
+  console.log('Compiling ClaimAccountApp..');
 
   if (doProofs) {
     await ClaimAccountV2.compile();
@@ -317,13 +317,28 @@ try{
   let mytx = await Mina.transaction(claimAccountFeePayer, () => {
     AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
     claimAccountApp.deploy({  zkappKey: claimAccountKey  });
+    // claimAccountApp.sign(claimAccountKey);
   });
-  // await tx.prove();
+  // await mytx.prove();
 
   await mytx.send();
 
   console.log('account deployed');
+  console.log('account init');
+
   
+  let txn = await Mina.transaction(claimAccountFeePayer, () => {
+    claimAccountApp.init();
+    claimAccountApp.sign(claimAccountKey);
+
+});
+console.log(`Proving blockchain transaction\n`)
+if (doProofs) {
+      await txn.prove();
+    }
+console.log(`Sending blockchain transaction\n`)
+await txn.send();
+console.log('Account init');
 
   console.log('Compiling QuizApp..');
 
@@ -473,7 +488,7 @@ try{
 
         let txn = await Mina.transaction(claimAccountFeePayer, () => {
           claimAccountApp.createAccount(account, witness);
-          claimAccountApp.sign(claimAccountKey);
+          // claimAccountApp.sign(claimAccountKey);
 
       });
       console.log(`Proving blockchain transaction\n`)
