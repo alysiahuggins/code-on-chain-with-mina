@@ -80,7 +80,7 @@ class Answer extends CircuitValue {
 }
 
 // this map serves as our off-chain in-memory storage
-class Account extends CircuitValue {
+export class Account extends CircuitValue {
   @prop username: CircuitString;
   @prop password: Field;
   @prop claimed: Field;
