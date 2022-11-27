@@ -39,6 +39,7 @@ import {
 } from 'snarkyjs';
 import { QuizToken } from './QuizToken.js';
 import { QuizV2 } from './QuizV2.js';
+import { ClaimAccountV2 } from './ClaimAccountV2.js';
 
 import { UserAccount } from './UserAccount.js';
 
@@ -54,7 +55,7 @@ await isReady;
 const doProofs = true;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
-class ClaimAccountMerkleWithness extends MerkleWitness(8) {}
+class ClaimAccountMerkleWitness extends MerkleWitness(8) {}
 
 // we need the initiate tree root in order to tell the contract about our off-chain storage
 let initialCommitment: Field = Field(0);
@@ -199,18 +200,18 @@ export class Quiz2 extends SmartContract {
 export class ClaimAccountSC extends SmartContract {
   @state(Field) commitment = State<Field>();
 
-  deploy(args: DeployArgs) {
-    super.deploy(args);
-    this.setPermissions({
-      ...Permissions.default(),
-      editState: Permissions.proofOrSignature(),
-    });
-    this.balance.addInPlace(UInt64.from(initialBalance));
-    this.commitment.set(initialClaimTreeCommittment);
-  }
+  // deploy(args: DeployArgs) {
+  //   super.deploy(args);
+  //   this.setPermissions({
+  //     ...Permissions.default(),
+  //     editState: Permissions.proofOrSignature(),
+  //   });
+  //   this.balance.addInPlace(UInt64.from(initialBalance));
+  //   this.commitment.set(initialClaimTreeCommittment);
+  // }
 
   
-  @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWithness){
+  @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWitness){
 
     let commitment = this.commitment.get();
     this.commitment.assertEquals(commitment);
@@ -220,7 +221,7 @@ export class ClaimAccountSC extends SmartContract {
 
   }
 
-  @method createAccount(account:Account, path: MyMerkleWitness){
+  @method createAccount(account:Account, path: ClaimAccountMerkleWitness){
     
     let commitment = this.commitment.get();
     this.commitment.assertEquals(commitment);
@@ -234,6 +235,27 @@ export class ClaimAccountSC extends SmartContract {
       this.commitment.set(newCommitment);
     }
 
+  }
+
+  init(){
+    super.init();
+    this.balance.addInPlace(UInt64.from(initialBalance));
+    this.commitment.set(this.createClaimAccountMerkleTree());
+  }
+
+  createClaimAccountMerkleTree(){
+    let committment: Field = Field(0);
+    let username = "alysia";
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Field(false));
+  
+    usernames[usernames.length] = username;
+    Accounts.set(username, account);
+    claimAccountTree.setLeaf(BigInt(0), account.hash());
+  
+    // now that we got our accounts set up, we need the commitment to deploy our contract!
+    committment = claimAccountTree.getRoot();
+    
+    return committment;
   }
 
 }
@@ -276,7 +298,7 @@ initialCommitment = createMerkleTree();
 
 let quizApp = new QuizV2(zkappAddress);
 let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
-let claimAccountApp = new ClaimAccountSC(claimAccountAddress);
+let claimAccountApp = new ClaimAccountV2(claimAccountAddress);
 let tokenId = tokenZkApp.token.id;
 let userAccountApp = new UserAccount(winnerKeyAddress, tokenId);
 
@@ -284,6 +306,24 @@ try{
   initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
 
   // console.log('Compiling ClaimAccountApp..');
+
+  if (doProofs) {
+    await ClaimAccountV2.compile();
+  }
+
+  
+  console.log('Deploying ClaimAccountApp..');
+  
+  let mytx = await Mina.transaction(claimAccountFeePayer, () => {
+    AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
+    claimAccountApp.deploy({  zkappKey: claimAccountKey  });
+  });
+  // await tx.prove();
+
+  await mytx.send();
+
+  console.log('account deployed');
+  
 
   console.log('Compiling QuizApp..');
 
@@ -320,23 +360,7 @@ try{
   await tx.send();
   
 
-  if (doProofs) {
-    await ClaimAccountSC.compile();
-  }
-
-  
-  console.log('Deploying ClaimAccountApp..');
-  
-  let mytx = await Mina.transaction(claimAccountFeePayer, () => {
-    AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
-    claimAccountApp.deploy({  zkappKey: claimAccountKey  });
-  });
-  // await tx.prove();
-
-  await mytx.send();
-
-  console.log('account deployed');
-  
+ 
  
 
   
@@ -444,7 +468,7 @@ try{
 
       let numUsers = usernames.length;
       let w = claimAccountTree.getWitness(BigInt(numUsers));
-      let witness = new ClaimAccountMerkleWithness(w);
+      let witness = new ClaimAccountMerkleWitness(w);
       let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
 
         let txn = await Mina.transaction(claimAccountFeePayer, () => {
@@ -481,7 +505,7 @@ try{
         })!;
       
       let w = claimAccountTree.getWitness(BigInt(usernameIndex));
-      let witness = new ClaimAccountMerkleWithness(w);
+      let witness = new ClaimAccountMerkleWitness(w);
         
 
       let txn = await Mina.transaction(feePayer, () => {

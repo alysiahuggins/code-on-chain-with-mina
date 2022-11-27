@@ -17,7 +17,7 @@
       "url": "https://proxy.berkeley.minaexplorer.com/graphql",
       "keyPath": "keys/berkeley3.json",
       "fee": "0.1",
-      "smartContract": "QuizV2"
+      "smartContract": "ClaimAccountV2"
     }
   }
 }
