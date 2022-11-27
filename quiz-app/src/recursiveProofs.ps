@@ -1,0 +1,166 @@
+import { SelfProof, Field, Experimental, verify, isReady, 
+  SmartContract, 
+  State, 
+  state,
+  method,
+  DeployArgs,  
+  Permissions,
+  Mina,
+  PrivateKey,
+  AccountUpdate,
+} from 'snarkyjs';
+await isReady;
+
+export class RecursiveProof extends SmartContract {
+  @state(Field) recursiveProofResult = State<Field>();
+  
+
+  deploy(args: DeployArgs) {
+    super.deploy(args);
+    this.setPermissions({
+      ...Permissions.default(),
+      editState: Permissions.proofOrSignature(),
+    });
+  }
+
+  @method init() {
+    this.recursiveProofResult.set(Field(0));
+  }
+
+
+  @method validateProof(response: Field){
+      //check if response hashes to the correctAnswer hash
+      // Poseidon.hash([response]).assertEquals(correctAnswer);
+      // we fetch the on-chain recursiveProofResult
+      let recursiveProofResult = this.recursiveProofResult.get();
+      this.recursiveProofResult.assertEquals(recursiveProofResult);
+  
+      // we check that the response is the same as the hash of the recursiveProofResult
+      this.recursiveProofResult.assertEquals(response);
+  }
+}
+
+async function deploy(){
+
+  const Local = Mina.LocalBlockchain();
+  Mina.setActiveInstance(Local);
+  const deployerAccount = Local.testAccounts[0].privateKey;
+
+   // Create a public/private key pair. The public key is our address and where we will deploy to
+   const zkAppPrivateKey = PrivateKey.random();
+   const zkAppAddress = zkAppPrivateKey.toPublicKey();
+
+   // Create an instance of our Square smart contract and deploy it to zkAppAddress
+  const contract = new RecursiveProof(zkAppAddress);
+  const deployTxn = await Mina.transaction(deployerAccount, () => {
+    AccountUpdate.fundNewAccount(deployerAccount);
+    contract.deploy({ zkappKey: zkAppPrivateKey});
+    contract.init();
+    contract.sign(zkAppPrivateKey);
+  });
+  await deployTxn.send().wait();
+  // Get the initial state of our zkApp account after deployment
+  const recursiveProofResult = contract.recursiveProofResult.get();
+
+  console.log('state after init:', recursiveProofResult.toString());
+
+  const txn2 = await Mina.transaction(deployerAccount, () => {
+    contract.validateProof(Field(0));
+    contract.sign(zkAppPrivateKey);
+  });
+  await txn2.send().wait();
+  console.log('Shutting down')
+}
+
+let MyProgram = Experimental.ZkProgram({
+  publicInput: Field,
+
+  methods: {
+    baseCase: {
+      privateInputs: [],
+
+      method(publicInput: Field) {
+        publicInput.assertEquals(Field(0));
+      },
+    },
+
+    inductiveCase: {
+      privateInputs: [SelfProof],
+
+      method(publicInput: Field, earlierProof: SelfProof<Field>) {
+        earlierProof.verify();
+        earlierProof.publicInput.add(1).assertEquals(publicInput);
+      },
+    },
+  },
+});
+
+
+async function main(){
+  let MyProof = Experimental.ZkProgram.Proof(MyProgram);
+
+  console.log('program digest', MyProgram.digest());
+  console.log('startDeployment');
+  await deploy();
+
+
+  console.log('compiling MyProgram...');
+  let { verificationKey } = await MyProgram.compile();
+  console.log('verification key', verificationKey.slice(0, 10) + '..');
+
+  console.log('proving base case...');
+  let proof = await MyProgram.baseCase(Field(0));
+  console.log(proof.verify());
+  proof = testJsonRoundtrip(proof); 
+  console.log(proof.toJSON().proof);
+
+  console.log('verify...');
+  let ok = await verify(proof.toJSON(), verificationKey);
+  console.log('ok?', ok);
+
+  console.log('proving step 1...');
+  proof = await MyProgram.inductiveCase(Field(1), proof);
+  proof = testJsonRoundtrip(proof);
+
+  console.log('verify alternative...');
+  console.log(proof.verify());
+  ok = await MyProgram.verify(proof); //what's the difference between MyProgram.verify() and verify()?
+  console.log('ok (alternative)?', ok);
+
+  console.log('verify... with tojson');
+  ok = await verify(proof.toJSON(), verificationKey);
+  console.log('ok?', ok);
+
+  console.log('verify... MyProgram.verify');
+  ok = await MyProgram.verify(proof);
+  console.log('ok?', ok);
+
+  console.log('verify...');
+  ok = await verify(proof, verificationKey);
+  console.log('ok?', ok);
+
+  console.log('proving step 2...');
+  proof = await MyProgram.inductiveCase(Field(2), proof);
+  proof = testJsonRoundtrip(proof);
+
+  console.log('verify...');
+  ok = await verify(proof.toJSON(), verificationKey);
+  console.log(ok);
+  console.log(proof.publicInput.toString())
+  console.log('ok?', ok && proof.publicInput.toString() === '2');
+
+  console.log('verify... MyProgram.verify');
+  ok = await MyProgram.verify(proof);
+  console.log('ok?', ok);
+
+  function testJsonRoundtrip(proof: any): any {
+    let jsonProof = proof.toJSON();
+    console.log(
+      'json proof',
+      JSON.stringify({ ...jsonProof, proof: jsonProof.proof.slice(0, 10) + '..' })
+    );
+    return MyProof.fromJSON(jsonProof);
+  }
+}
+
+main()
