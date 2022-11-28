@@ -12,6 +12,10 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 - Make sure you have npm installed and run the following commands within the project folder. 
 `npm install`
 `npm run build && node build/src/main.js`
+
+### Running on TokenClaims Branch for compiled contract (temp)
+`npm run build && node build/src/YKProofMain.js`
+
 ### Steps to Building this App
 - Create curriculum
 - Define Modules
@@ -102,6 +106,9 @@ You are using a different address
 problem: signing a transaction with the key that did not do the deployment, instead sign with that key or just do tx.prove()
 
 
+#### Error: Transaction verification failed: Cannot update field 'incrementNonce' because permission for this field is 'Signature', but the required authorization was not provided or is invalid.
+
+solution: incorrect key used for signing, used the same key that deployed the smart contract
 
 ### Testnet Address
 Berkeley3 B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
