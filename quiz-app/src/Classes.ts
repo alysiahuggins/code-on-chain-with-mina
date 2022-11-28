@@ -6,6 +6,7 @@ import {
     prop,
     Poseidon,
     MerkleWitness,
+    UInt32
   } from 'snarkyjs';
 
 export class Account extends CircuitValue {
@@ -26,6 +27,19 @@ export class Account extends CircuitValue {
   
     setClaimed(claimed: Field) {
       this.claimed = claimed;
+    }
+  }
+
+export class Answer extends CircuitValue {
+    @prop answer: UInt32;
+  
+    constructor(answer: UInt32) {
+      super(answer);
+      this.answer = answer;
+    }
+  
+    hash(): Field {
+      return Poseidon.hash(this.toFields());
     }
   }
 
