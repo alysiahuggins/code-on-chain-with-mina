@@ -17,7 +17,8 @@ import {
   CircuitValue,
   prop,
   Poseidon,
-  UInt32
+  UInt32,
+  Ledger
 } from 'snarkyjs';
 
 import fs from 'fs';
@@ -37,7 +38,6 @@ const answerTree = new MerkleTree(8);
 // this map serves as our off-chain in-memory storage
 let Accounts: Map<string, Account> = new Map<string, Account>();
 let usernames: Array<string> = new Array<string>();
-
 
 function createClaimAccountMerkleTree(username: string, password: string){
     let committment: Field = Field(0);
@@ -168,6 +168,8 @@ export const deploy = async (
  
   const zkAppPublicKey = zkAppPrivateKey.toPublicKey();
   let zkapp = new YKProof(zkAppPublicKey);
+let tokenId = zkapp.token.id;
+
 
    // ----------------------------------------------------
    let zkAppResponse = await fetchAccount({ publicKey: zkAppPublicKey });
@@ -189,7 +191,40 @@ export const deploy = async (
   });
   // ----------------------------------------------------...
    
-
+ 
+  try{
+    
+    console.log('getting Token balance')
+    console.log(
+      `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+      Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
+    );
+  }catch(e){
+    console.log(`Error getting token balance from ${zkAppPublicKey.toBase58()}`);
+    console.log(e);
+        // console.log("deploy the userAccount ");
+        // console.log('deploy userAccount');
+        // let tx = await Mina.transaction({ feePayerKey: deployerPrivateKey, fee: transactionFee },() => {
+        // AccountUpdate.fundNewAccount(deployerPrivateKey);
+        // zkapp.tokenDeploy(deployerPrivateKey, YKProof._verificationKey!);
+        // zkapp.sign(deployerPrivateKey);
+        // });
+        // console.log('deploy UserAcocunt (proof)');
+        // await tx.prove(); 
+        // let res = await tx.send();
+        // let hash = await res.hash(); // This will change in a future version of SnarkyJS
+        // if (hash == null) {
+        // console.log('error sending transaction (see above)');
+        // } else {
+        // console.log(
+        //     'See transaction at',
+        //     'https://berkeley.minaexplorer.com/transaction/' + hash
+        // );
+        // }
+    }
+        
+//   }
+  shutdown();
   // ----------------------------------------------------
 
   const needsInitialization = await zkAppNeedsInitialization({ zkAppAccount });
@@ -221,6 +256,9 @@ export const deploy = async (
 
   // ----------------------------------------------------
  // answer a question
+
+  // ----------------------------------------------------
+ // answer a question
     var response = parseInt((await question(questions[1].question)).trim());
          let w = answerTree.getWitness(BigInt(1));
          let witness = new AnswerMerkleWitness(w);
@@ -240,19 +278,76 @@ export const deploy = async (
         console.log('creating proof took', (time1 - time0) / 1e3, 'seconds');
       
         console.log('Sending the transaction...');
-        let res = await txn.send();
-        let hash = await res.hash(); // This will change in a future version of SnarkyJS
-        if (hash == null) {
-          console.log('error sending transaction (see above)');
-        } else {
-          console.log(
-            'See transaction at',
-            'https://berkeley.minaexplorer.com/transaction/' + hash
-          );
-        }
-        
+        let res// = await txn.send();
+        let hash// = await res.hash(); // This will change in a future version of SnarkyJS
+        // if (hash == null) {
+        //   console.log('error sending transaction (see above)');
+        // } else {
+        //   console.log(
+        //     'See transaction at',
+        //     'https://berkeley.minaexplorer.com/transaction/' + hash
+        //   );
+        // }
+         // ----------------------------------------------------
+ // minting token
           console.log('Waiting for result, but correct if it did not fail here');
-         
+    
+          try{
+            console.log(`Getting Your Token Reward ${zkAppPublicKey.toBase58()}`);
+            console.log('mint token to UserAccount');
+            let tx = await Mina.transaction(deployerPrivateKey, () => {
+              zkapp.mint(zkAppPublicKey);
+              zkapp.sign(deployerPrivateKey);
+        
+            });
+            console.log('Creating an execution proof...');
+            let time0 = Date.now();
+            await tx.prove();
+            let time1 = Date.now();
+            console.log('creating proof took', (time1 - time0) / 1e3, 'seconds');
+            console.log('Sending the transaction...');
+            res = await txn.send();
+            hash = await res.hash(); // This will change in a future version of SnarkyJS
+            if (hash == null) {
+            console.log('error sending transaction (see above)');
+            } else {
+            console.log(
+                'See transaction at',
+                'https://berkeley.minaexplorer.com/transaction/' + hash
+            );
+            }
+
+            console.log('getting Token balance')
+            console.log(
+              `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+              Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
+            );
+          }catch(e){
+            console.log(`Error sending token to ${zkAppPublicKey.toBase58()}`);
+            console.log(e);
+            // if("Could not find account for public key" in e){
+            //     console.log("deploy the userAccount and retry the minting");
+            //     console.log('deploy userAccount');
+            //     let tx = await Mina.transaction(deployerPrivateKey, () => {
+            //     AccountUpdate.fundNewAccount(deployerPrivateKey);
+            //     zkapp.tokenDeploy(deployerPrivateKey, YKProof._verificationKey!);
+            //     zkapp.sign(deployerPrivateKey);
+            //     });
+            //     console.log('deploy UserAcocunt (proof)');
+            //     await tx.prove(); 
+            //     let res = await txn.send();
+            //     let hash = await res.hash(); // This will change in a future version of SnarkyJS
+            //     if (hash == null) {
+            //     console.log('error sending transaction (see above)');
+            //     } else {
+            //     console.log(
+            //         'See transaction at',
+            //         'https://berkeley.minaexplorer.com/transaction/' + hash
+            //     );
+            //     }
+            // }
+                
+          }
  // ----------------------------------------------------
  // create an account in zkapp
  let account1 = new Account(CircuitString.fromString("alysia"), CircuitString.fromString("minarocks"), Field(false));

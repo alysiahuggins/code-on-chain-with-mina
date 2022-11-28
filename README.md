@@ -112,3 +112,8 @@ solution: incorrect key used for signing, used the same key that deployed the sm
 
 ### Testnet Address
 Berkeley3 B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
+
+
+### Unsolved Issues
+#### Error: getAccount: Could not find account for public key B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz with the tokenId wUH3Pg4vmt4n8mMDm5SLHYDQFjVNyiRtTqzgmUK392rYScHgPj
+- can't send tokens to an account unless the tokendeploy method has been called so that it's made a token account
