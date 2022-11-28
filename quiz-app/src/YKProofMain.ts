@@ -48,7 +48,6 @@ import {
   import {questions as questions} from "./curriculum/curriculum.js"
   
   import {answers as answers} from "./curriculum/curriculum.js"
-  import { ContractFunctionVisibility } from 'hardhat/internal/hardhat-network/stack-traces/model.js';
   
   
   await isReady;
@@ -63,7 +62,7 @@ import {
   let initialClaimTreeCommittment: Field = Field(0);
   
   
-  let initialBalance = 10_000_000_000;
+  let initialBalance = 100_000_000_000;
   
   
   
@@ -302,13 +301,14 @@ import {
   
   initialCommitment = createMerkleTree();
   
+  let ykProofApp= new YKProof(ykProofAccountAddress);
   
   let quizApp = new QuizV2(zkappAddress);
   let tokenZkApp = new QuizToken(tokenZkAppKeyAddress);
   let claimAccountApp = new ClaimAccountV2(claimAccountAddress);
-  let tokenId = tokenZkApp.token.id;
-  let userAccountApp = new UserAccount(winnerKeyAddress, tokenId);
-  let ykProofApp= new YKProof(ykProofAccountAddress);
+//   let tokenId = tokenZkApp.token.id;
+    let tokenId = ykProofApp.token.id;
+  let userAccountApp = new YKProof(winnerKeyAddress, tokenId);
   
   try{
     initialClaimTreeCommittment = createClaimAccountMerkleTree('alysia', 'minarocks');
@@ -325,6 +325,8 @@ import {
     let yktx = await Mina.transaction(ykProofFeePayer, () => {
       AccountUpdate.fundNewAccount(ykProofFeePayer, { initialBalance });
       ykProofApp.deploy({  zkappKey: ykProofAccountKey  });
+    //   tokenZkApp.tokenDeploy(ykProofAccountKey, UserAccount._verificationKey!);
+
       // claimAccountApp.sign(claimAccountKey);
     });
     // await mytx.prove();
@@ -410,16 +412,16 @@ import {
     // console.log(quizApp.commitment.get());
     // console.log(initialClaimTreeCommittment);
   
-    console.log('compile (TokenContract)');
-    await QuizToken.compile();
+//     console.log('compile (TokenContract)');
+//     await QuizToken.compile();
     
     
-    console.log('deploy tokenZkApp');
-   let tx = await Local.transaction(tokenFeePayer, () => {
-      AccountUpdate.fundNewAccount(tokenFeePayer, { initialBalance });
-      tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
-    });
-    await tx.send();
+//     console.log('deploy tokenZkApp');
+//    let tx = await Local.transaction(tokenFeePayer, () => {
+//       AccountUpdate.fundNewAccount(tokenFeePayer, { initialBalance });
+//       tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
+//     });
+//     await tx.send();
     
   
    
@@ -428,14 +430,14 @@ import {
     
   
   
-    console.log('compile (UserAccount)');
-    await UserAccount.compile();
+    // console.log('compile (UserAccount)');
+    // await UserAccount.compile();
   
     console.log('deploy userAccount');
-     tx = await Local.transaction(feePayer, () => {
+    let tx = await Local.transaction(feePayer, () => {
       AccountUpdate.fundNewAccount(feePayer);
-      tokenZkApp.tokenDeploy(winnerKey, UserAccount._verificationKey!);
-      tokenZkApp.sign(tokenZkAppKey);
+      ykProofApp.tokenDeploy(winnerKey, YKProof._verificationKey!);
+      ykProofApp.sign(ykProofAccountKey);
     });
     console.log('deploy UserAcocunt (proof)');
     await tx.prove(); 
@@ -459,7 +461,7 @@ import {
          let w = answerTree.getWitness(BigInt(i));
          let witness = new MyMerkleWitness(w);
          try{
-             let txn = await Mina.transaction(feePayer, () => {
+             let txn = await Mina.transaction(ykProofFeePayer, () => {
                  ykProofApp.validateQuestionResponse(Field(response),  witness);
                  ykProofApp.sign(ykProofAccountKey);
   
@@ -499,11 +501,11 @@ import {
     console.log("Congratulations, you won!!!");
   
     try{
-      console.log(`Getting Your Token Reward ${winnerKeyAddress.toBase58()}`);
+      console.log(`Getting Your Token Reward ${ykProofAccountAddress.toBase58()}`);
       console.log('mint token to UserAccount');
-      let tx = await Local.transaction(feePayer, () => {
-        tokenZkApp.mint(winnerKeyAddress);
-        tokenZkApp.sign(tokenZkAppKey);
+      let tx = await Local.transaction(ykProofFeePayer, () => {
+        ykProofApp.mint(winnerKeyAddress);
+        ykProofApp.sign(ykProofAccountKey);
   
       });
       // await tx.prove();
@@ -514,7 +516,7 @@ import {
         Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
       );
     }catch(e){
-      console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
+      console.log(`Error sending token to ${ykProofAccountAddress.toBase58()}`);
       console.log(e);
     }
     var rewardAddressResponse = await question(`Do you have an account with us?\n`)
@@ -535,7 +537,7 @@ import {
   
           let txn = await Mina.transaction(ykProofFeePayer, () => {
             ykProofApp.createAccount(account, witness);
-            claimAccountApp.sign(claimAccountKey);
+            ykProofApp.sign(ykProofAccountKey);
   
         });
         console.log(`Proving blockchain transaction\n`)
@@ -570,9 +572,9 @@ import {
         let witness = new ClaimAccountMerkleWitness(w);
           
   
-        let txn = await Mina.transaction(feePayer, () => {
+        let txn = await Mina.transaction(ykProofFeePayer, () => {
           ykProofApp.validateAccountPassword(account, witness);
-        //   ykProofApp.sign(ykProofAccountKey);
+          ykProofApp.sign(ykProofAccountKey);
   
         });
         console.log(`Proving blockchain transaction\n`)
@@ -592,8 +594,8 @@ import {
               []
             );
             // we call the token contract with the callback
-            tokenZkApp.sendTokens(winnerKeyAddress, winnerKeyAddress, approveSendingCallback);
-            tokenZkApp.sign(tokenZkAppKey);
+            ykProofApp.sendTokens(winnerKeyAddress, winnerKeyAddress, approveSendingCallback);
+            ykProofApp.sign(ykProofAccountKey);
   
           });
           console.log('approve send (proof)');

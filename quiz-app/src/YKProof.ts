@@ -14,13 +14,19 @@ import {
     MerkleTree,
     DeployArgs,
     Permissions,
-    UInt32
+    UInt32,
+    PublicKey,
+    Experimental,
+    PrivateKey,
+    AccountUpdate,
+    Int64,
+    VerificationKey
   } from 'snarkyjs';
 
   import {answers as answers} from "./curriculum/curriculum.js"
 
 await isReady;
-let initialBalance = 10_000_000_000;
+let initialBalance = 100_000_000_000;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
 const answerTree = new MerkleTree(8);
@@ -156,5 +162,67 @@ export class YKProof extends SmartContract {
     
         // we check that the response is the same as the hash of the answer at that path
         path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(quizAnswerCommittment);
+      }
+
+      // QUiz TOken
+      @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {
+        let address = deployer.toPublicKey();
+        let tokenId = this.token.id;
+        let deployUpdate = Experimental.createChildAccountUpdate(
+          this.self,
+          address,
+          tokenId
+        );
+        AccountUpdate.setValue(deployUpdate.update.permissions, {
+          ...Permissions.default(),
+          send: Permissions.proof(),
+        });
+        AccountUpdate.setValue(
+          deployUpdate.update.verificationKey,
+          verificationKey
+        );
+        deployUpdate.sign(deployer);
+        
+      }
+    
+      @method mint(receiverAddress: PublicKey) {
+        let amount = UInt64.from(1_000_000);
+        this.token.mint({ address: receiverAddress, amount });
+      }
+    
+      @method burn(receiverAddress: PublicKey) {
+        let amount = UInt64.from(1_000);
+        this.token.burn({ address: receiverAddress, amount });
+      }
+    
+      @method sendTokens(
+        senderAddress: PublicKey,
+        receiverAddress: PublicKey,
+        callback: Experimental.Callback<any>
+      ) {
+        let senderAccountUpdate = this.approve(
+          callback,
+          AccountUpdate.Layout.AnyChildren
+        );
+        let amount = UInt64.from(1_000);
+        let negativeAmount = Int64.fromObject(
+          senderAccountUpdate.body.balanceChange
+        );
+        negativeAmount.assertEquals(Int64.from(amount).neg());
+        let tokenId = this.token.id;
+        senderAccountUpdate.body.tokenId.assertEquals(tokenId);
+        senderAccountUpdate.body.publicKey.assertEquals(senderAddress);
+        let receiverAccountUpdate = Experimental.createChildAccountUpdate(
+          this.self,
+          receiverAddress,
+          tokenId
+        );
+        receiverAccountUpdate.balance.addInPlace(amount);
+      }
+
+      //UserAccount
+      @method approveSend() {
+        let amount = UInt64.from(1_000);
+        this.balance.subInPlace(amount);
       }
   }
