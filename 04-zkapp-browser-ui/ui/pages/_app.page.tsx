@@ -1,9 +1,10 @@
 import '../styles/globals.css';
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
-import { Container, Row, Col, Button, Card, Form } from 'react-bootstrap'
+import { Container, Row, Col, Button, Card, Form, Image, InputGroup } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import ZkappWorkerClient from './zkappWorkerClient';
+
 
 import {
   PublicKey,
@@ -11,9 +12,14 @@ import {
   Field,
 } from 'snarkyjs'
 
+import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
+import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
+
 let transactionFee = 0.1;
 
 export default function App() {
+
+  
 
   let [state, setState] = useState({
     zkappWorkerClient: null as null | ZkappWorkerClient,
@@ -161,11 +167,19 @@ export default function App() {
   if (state.hasWallet != null && !state.hasWallet) {
     const auroLink = 'https://www.aurowallet.com/';
     const auroLinkElem = <a href={auroLink} target="_blank" rel="noreferrer"> [Link] </a>
-    hasWallet = <Container> Could not find a wallet. Install Auro wallet here: { auroLinkElem }</Container> 
+    hasWallet = <Container className="text-center"> Could not find a wallet. Install Auro wallet here: { auroLinkElem }</Container> 
   }
 
-  let setupText = state.hasBeenSetup ? 'SnarkyJS Ready' : 'Setting up SnarkyJS...';
-  let setup = <Container> { setupText } { hasWallet }</Container>
+  let setupText = state.hasBeenSetup ? '' : 'Loading...';
+  let setup = <Container className="text-center"> { setupText } { hasWallet }</Container>
+  let logoContent = 
+  <Container fluid="sm" className="text-center">
+    <Row>
+      <Col>
+      <Card.Img src='/images/ykp-logo.png'   alt="logo"/>
+      </Col>
+    </Row>
+  </Container>
 
   let accountDoesNotExist;
   if (state.hasBeenSetup && !state.accountExists) {
@@ -176,21 +190,119 @@ export default function App() {
     </Container>
   }
 
+  const [item, setItem] = useState({ kindOfStand: "", another: "another" });
+
+  const { kindOfStand } = item;
+
+  const handleChange = e => {
+    e.persist();
+    console.log(e.target.value);
+
+    setItem(prevState => ({
+      ...prevState,
+      kindOfStand: e.target.value
+    }));
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    alert(`${kindOfStand}`);
+  };
+
   let mainContent;
+  let quizContent;
   if (state.hasBeenSetup && state.accountExists) {
     mainContent = 
-    <div>
-    <Container>
-      <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
-      <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
-      <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
-    </Container>
-    </div>
+    <Container fluid="sm" className="text-center">
+      <Row>
+        <Col></Col>
+        <Col>
+          <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
+          <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
+          <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
+        </Col>
+        <Col></Col>
+      </Row>
+    </Container>;
+
+    quizContent = 
+    <Container fluid="sm" className="text-center">
+      <Row>
+        <Col>
+          <Form>
+          <h3>{questionsRadio[0].question}</h3>
+          <InputGroup>
+          {/* {['checkbox', 'radio'].map((type) => (
+        <div key={`default-${type}`} className="mb-3">
+          <InputGroup.Radio
+            type="radio"
+            id={`default-${type}`}
+            label={`default ${type}`}
+          />
+          <InputGroup.Radio aria-label="Radio button for following text input" />
+        </div>
+      ))} */}
+      </InputGroup>
+        </Form>
+        <Form onSubmit={handleSubmit}>
+        <Form.Group controlId="kindOfStand">
+          <Form.Check
+            value="1"
+            type="radio"
+            aria-label="radio 1"
+            label={questionsRadio[0].options[0]}
+            onChange={handleChange}
+            checked={kindOfStand === "1"}
+          />
+          <Form.Check
+            value="2"
+            type="radio"
+            aria-label="radio 2"
+            label={questionsRadio[0].options[1]}
+            onChange={handleChange}
+            checked={kindOfStand === "2"}
+          />
+
+        <Form.Check
+            value="3"
+            type="radio"
+            aria-label="radio 2"
+            label={questionsRadio[0].options[2]}
+            onChange={handleChange}
+            checked={kindOfStand === "3"}
+          />
+          <Form.Check
+            value="4"
+            type="radio"
+            aria-label="radio 2"
+            label={questionsRadio[0].options[3]}
+            onChange={handleChange}
+            checked={kindOfStand === "4"}
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit">
+          Submit
+        </Button>
+      </Form>
+        
+       
+        </Col>
+      </Row>
+    </Container>;
+
+ 
   }
 
   return <div>
+   { logoContent }
    { setup }
+
    { accountDoesNotExist }
-   { mainContent }
+   {/* { mainContent } */}
+   { quizContent }
+   
+
   </div>
+
+
 }
