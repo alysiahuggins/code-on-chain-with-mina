@@ -221,8 +221,8 @@ export const deploy = async (
 
   // ----------------------------------------------------
  // answer a question
-    var response = parseInt((await question(questions[0].question)).trim());
-         let w = answerTree.getWitness(BigInt(0));
+    var response = parseInt((await question(questions[1].question)).trim());
+         let w = answerTree.getWitness(BigInt(1));
          let witness = new AnswerMerkleWitness(w);
 
          let txn = await Mina.transaction({ feePayerKey: deployerPrivateKey, fee: transactionFee },

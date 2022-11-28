@@ -4,7 +4,11 @@ import {
     PrivateKey,
     Field,
     CircuitString,
+    MerkleTree,MerkleWitness
   } from 'snarkyjs'
+import { AnswerMerkleWitness } from '../../../quiz-app/src/Classes.js';
+let MyMerkleWitness = MerkleWitness(8);
+
   
   import type { ZkappWorkerRequest, ZkappWorkerReponse, WorkerFunctions } from './zkappWorker.js';
   
@@ -20,9 +24,6 @@ import {
       return this._call('setActiveInstanceToBerkeley', {});
     }
 
-    setActiveInstanceToLocal() {
-      return this._call('setActiveInstanceToLocal', {});
-    }
   
     loadContract() {
       return this._call('loadContract', {});
@@ -46,15 +47,24 @@ import {
       return Field.fromJSON(JSON.parse(result as string));
     }
 
-    // async getNum(): Promise<Field> {
-    //   const result = await this._call('getNum', {});
-    //   return CircuitString.fromString(result);
-    // }
+    async getNumRaw(): Promise<Field[]> {
+      const result = await this._call('getNumRaw', {})!;
+      return result as Field[];
+    }
+
   
     createUpdateTransaction() {
       return this._call('createUpdateTransaction', {});
     }
+
+    createValidateQuestionTransaction(response: Field, path:AnswerMerkleWitness) {
+      return this._call('createValidateQuestionTransaction', { response, path});
+    }
   
+    signUpdateTransaction(zkappKey: PrivateKey[]) {
+      return this._call('proveUpdateTransaction', {zkappKey});
+    }
+
     proveUpdateTransaction() {
       return this._call('proveUpdateTransaction', {});
     }
@@ -62,6 +72,11 @@ import {
     async getTransactionJSON() {
       const result = await this._call('getTransactionJSON', {});
       return result;
+    }
+
+    async createAnswerMerkleTree() {
+      const result = await this._call('createAnswerMerkleTree', {});
+      return result as MerkleTree;
     }
   
     // ---------------------------------------------------------------------------------------

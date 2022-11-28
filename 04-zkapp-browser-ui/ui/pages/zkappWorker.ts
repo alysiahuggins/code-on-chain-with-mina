@@ -5,19 +5,24 @@ import {
     PrivateKey,
     Field,
     fetchAccount,
+    MerkleWitness
   } from 'snarkyjs'
-import { Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classes.js';
   
   type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
   
   // ---------------------------------------------------------------------------------------
   
 //   import type { Add } from '../../contracts/src/Add';
-  import type {ClaimAccountV2} from '../../contracts/src/ClaimAccountV2';
+  // import type {ClaimAccountV2} from '../../contracts/src/ClaimAccountV2';
+  import {YKProof} from '../../contracts/src/YKProof';
+
+import { Account, Answer, ClaimAccountMerkleWitness, AnswerMerkleWitness } from '../../../quiz-app/src/Classes.js';
+let MyMerkleWitness = MerkleWitness(8);
+
   const state = {
-    ClaimAccountV2: null as null | typeof ClaimAccountV2,
-    zkapp: null as null | ClaimAccountV2,
-    transaction: null as null | Transaction,
+    YKProof: null as null | typeof YKProof,
+    zkapp: null as null | YKProof,
+    transaction: null as null | Transaction
   }
   
   // ---------------------------------------------------------------------------------------
@@ -26,8 +31,7 @@ import { Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classe
   const functions = {
     loadSnarkyJS: async (args: {}) => {
       await isReady;
-      console.log("CLaimAcccountV2");
-
+      console.log("YKProof");
     },
     setActiveInstanceToBerkeley: async (args: {}) => {
       const Berkeley = Mina.BerkeleyQANet(
@@ -35,16 +39,12 @@ import { Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classe
       );
       Mina.setActiveInstance(Berkeley);
     },
-    setActiveInstanceToLocal: async (args: {}) => {
-      const Local = Mina.LocalBlockchain({ proofsEnabled: true });
-      Mina.setActiveInstance(Local);
-    },
     loadContract: async (args: {}) => {
-      const { ClaimAccountV2 } = await import('../../contracts/build/src/ClaimAccountV2.js');
-      state.ClaimAccountV2 = ClaimAccountV2;
+      const { YKProof } = await import('../../contracts/build/src/YKProof.js');
+      state.YKProof = YKProof;
     },
     compileContract: async (args: {}) => {
-      await state.ClaimAccountV2!.compile();
+      await state.YKProof!.compile();
     },
     fetchAccount: async (args: { publicKey58: string }) => {
       const publicKey = PublicKey.fromBase58(args.publicKey58);
@@ -52,11 +52,15 @@ import { Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classe
     },
     initZkappInstance: async (args: { publicKey58: string }) => {
       const publicKey = PublicKey.fromBase58(args.publicKey58);
-      state.zkapp = new state.ClaimAccountV2!(publicKey);
+      state.zkapp = new state.YKProof!(publicKey);
     },
     getNum: async (args: {}) => {
-      const currentNum = await state.zkapp!.commitment.get();
+      const currentNum = await state.zkapp!.quizAnswerCommittment.get();
       return JSON.stringify(currentNum.toJSON());
+    },
+    getNumRaw: async (args: {}) => {
+      const currentNum = await state.zkapp!.quizAnswerCommittment.get();
+      return currentNum;
     },
     createUpdateTransaction: async (args: {account: Account, path: ClaimAccountMerkleWitness}) => {
       const transaction = await Mina.transaction(() => {
@@ -65,12 +69,23 @@ import { Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classe
       );
       state.transaction = transaction;
     },
+    createValidateQuestionTransaction: async (args: {response: Field, path: AnswerMerkleWitness}) => {
+      
+      const transaction = await Mina.transaction(() => {
+          state.zkapp!.validateQuestionResponse(args.response, args.path);
+        }
+      );
+      state.transaction = transaction;
+    },
+    signUpdateTransaction: async (args: {zkappKey: PrivateKey[]}) => {
+      await state.transaction!.sign(args.zkappKey);
+    },
     proveUpdateTransaction: async (args: {}) => {
       await state.transaction!.prove();
     },
     getTransactionJSON: async (args: {}) => {
       return state.transaction!.toJSON();
-    },
+    }
   };
   
   // ---------------------------------------------------------------------------------------

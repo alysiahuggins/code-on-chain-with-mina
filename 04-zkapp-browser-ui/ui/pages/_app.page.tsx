@@ -10,16 +10,36 @@ import {
   PublicKey,
   PrivateKey,
   Field,
+  MerkleTree,
+  MerkleWitness,
+  prop,
+  CircuitValue,
+  UInt32,
+  Poseidon,
+  isReady
 } from 'snarkyjs'
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
 import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
+// import { AnswerMerkleWitness } from '../../../quiz-app/src/Classes';
+
+export class Answer extends CircuitValue {
+  @prop answer: UInt32;
+
+  constructor(answer: UInt32) {
+    super(answer);
+    this.answer = answer;
+  }
+
+  hash(): Field {
+    return Poseidon.hash(this.toFields());
+  }
+}
 
 let transactionFee = 0.1;
+let AnswerMerkleWitness = MerkleWitness(8);
 
 export default function App() {
-
-  
 
   let [state, setState] = useState({
     zkappWorkerClient: null as null | ZkappWorkerClient,
@@ -30,6 +50,7 @@ export default function App() {
     publicKey: null as null | PublicKey,
     zkappPublicKey: null as null | PublicKey,
     creatingTransaction: false,
+    answerTree: null as null | MerkleTree,
   });
 
   // -------------------------------------------------------
@@ -81,6 +102,10 @@ export default function App() {
         console.log(currentNum);
         console.log('current state:', currentNum.toString());
 
+        
+        let answerTree = createAnswerMerkleTree();
+        
+
         setState({ 
             ...state, 
             zkappWorkerClient, 
@@ -89,8 +114,12 @@ export default function App() {
             publicKey, 
             zkappPublicKey, 
             accountExists, 
-            currentNum
+            currentNum,
+            answerTree
         });
+        console.log(state.answerTree);
+       await onAnswerTransaction();
+
       }
     })();
   }, []);
@@ -148,6 +177,43 @@ export default function App() {
     setState({ ...state, creatingTransaction: false });
   }
 
+
+  // -------------------------------------------------------
+  // Answer a question  transaction
+
+  const onAnswerTransaction = async () => {
+    let w = state.answerTree!.getWitness(BigInt(0));
+    let witness = new AnswerMerkleWitness(w);
+    setState({ ...state, creatingTransaction: true });
+    console.log('sending answer transaction...');
+
+    await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
+
+    await state.zkappWorkerClient!.createValidateQuestionTransaction(Field(4), witness);
+
+
+    console.log('creating proof...');
+    await state.zkappWorkerClient!.proveUpdateTransaction();
+
+    console.log('getting Transaction JSON...');
+    const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON()
+
+    console.log('requesting send transaction...');
+    const { hash } = await (window as any).mina.sendTransaction({
+      transaction: transactionJSON,
+      feePayer: {
+        fee: transactionFee,
+        memo: '',
+      },
+    });
+
+    console.log(
+      'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
+    );
+
+    setState({ ...state, creatingTransaction: false });
+  }
+
   // -------------------------------------------------------
   // Refresh the current state
 
@@ -159,6 +225,25 @@ export default function App() {
 
     setState({ ...state, currentNum });
   }
+  // -------------------------------------------------------
+  // Create Merkle Tree
+  function createAnswerMerkleTree(){
+    // let committment: Field = Field(0);
+    let Answers: Map<number, Answer> = new Map<number, Answer>();
+    let answerTree = new MerkleTree(8);
+
+    for(let i in answers){
+      console.log(i);
+        let thisAnswer = new Answer(UInt32.from(answers[i].answer));
+        Answers.set(parseInt(i), thisAnswer);
+        answerTree.setLeaf(BigInt(i), thisAnswer.hash());
+        console.log(i, thisAnswer);
+    }
+  
+    // now that we got our accounts set up, we need the commitment to deploy our contract!
+    return answerTree;
+}
+
 
   // -------------------------------------------------------
   // Create UI elements
@@ -192,7 +277,7 @@ export default function App() {
 
   const [item, setItem] = useState({ kindOfStand: "", another: "another" });
 
-  const { kindOfStand } = item;
+  const { kindOfStand: questionResponse } = item;
 
   const handleChange = e => {
     e.persist();
@@ -206,18 +291,25 @@ export default function App() {
 
   const handleSubmit = e => {
     e.preventDefault();
-    alert(`${kindOfStand}`);
+    alert(`${questionResponse}`);
+    let w = state.answerTree!.getWitness(BigInt(0));
+    let witness = new AnswerMerkleWitness(w);
+    // onAnswerTransaction(Field(4), witness);
+    onAnswerTransaction();
   };
 
   let mainContent;
   let quizContent;
   if (state.hasBeenSetup && state.accountExists) {
+    let w = state.answerTree!.getWitness(BigInt(0));
+    let witness = new AnswerMerkleWitness(w);
+    ;
     mainContent = 
     <Container fluid="sm" className="text-center">
       <Row>
         <Col></Col>
         <Col>
-          <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
+          <Button onClick={onAnswerTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
           <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
           <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
         </Col>
@@ -247,40 +339,40 @@ export default function App() {
         <Form onSubmit={handleSubmit}>
         <Form.Group controlId="kindOfStand">
           <Form.Check
-            value="1"
+            value="0"
             type="radio"
             aria-label="radio 1"
             label={questionsRadio[0].options[0]}
             onChange={handleChange}
-            checked={kindOfStand === "1"}
+            checked={questionResponse === "0"}
           />
           <Form.Check
-            value="2"
+            value="1"
             type="radio"
             aria-label="radio 2"
             label={questionsRadio[0].options[1]}
             onChange={handleChange}
-            checked={kindOfStand === "2"}
+            checked={questionResponse === "1"}
           />
 
         <Form.Check
-            value="3"
+            value="2"
             type="radio"
             aria-label="radio 2"
             label={questionsRadio[0].options[2]}
             onChange={handleChange}
-            checked={kindOfStand === "3"}
+            checked={questionResponse === "2"}
           />
           <Form.Check
-            value="4"
+            value="3"
             type="radio"
             aria-label="radio 2"
             label={questionsRadio[0].options[3]}
             onChange={handleChange}
-            checked={kindOfStand === "4"}
+            checked={questionResponse === "3"}
           />
         </Form.Group>
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" disabled={state.creatingTransaction}>
           Submit
         </Button>
       </Form>
@@ -298,7 +390,7 @@ export default function App() {
    { setup }
 
    { accountDoesNotExist }
-   {/* { mainContent } */}
+   { mainContent }
    { quizContent }
    
 

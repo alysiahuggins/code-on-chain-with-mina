@@ -10,8 +10,8 @@ import {
     MerkleTree
   } from 'snarkyjs';
 
-import {questions as questions} from "./curriculum/curriculum.js"
-import {answers as answers} from "./curriculum/curriculum.js"
+import {questions as questions} from "../curriculum/curriculum.js"
+import {answers as answers} from "../curriculum/curriculum.js"
 
 export class Account extends CircuitValue {
     @prop username: CircuitString;
@@ -50,9 +50,8 @@ export class Answer extends CircuitValue {
 export class ClaimAccountMerkleWitness extends MerkleWitness(8) {}
 export class AnswerMerkleWitness extends MerkleWitness(8) {}
 
-
-export function createAnswerMerkleTree(): MerkleTree{
-    // let committment: Field = Field(0);
+export function createAnswerMerkleTree(){
+    let committment: Field = Field(0);
     let Answers: Map<number, Answer> = new Map<number, Answer>();
     const answerTree = new MerkleTree(8);
 
@@ -66,5 +65,3 @@ export function createAnswerMerkleTree(): MerkleTree{
     // now that we got our accounts set up, we need the commitment to deploy our contract!
     return answerTree;
 }
-
-// export const answerTree:MerkleTree = createAnswerMerkleTree();
