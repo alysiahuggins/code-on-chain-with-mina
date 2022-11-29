@@ -199,18 +199,18 @@ import {
     console.log('ykProofApp init');
   
     
-    yktx = await Mina.transaction(ykProofFeePayer, () => {
-        ykProofApp.init();
-        ykProofApp.sign(ykProofAccountKey);
+//     yktx = await Mina.transaction(ykProofFeePayer, () => {
+//         ykProofApp.init();
+//         ykProofApp.sign(ykProofAccountKey);
   
-  });
-  console.log(`Proving blockchain transaction\n`)
-  if (doProofs) {
-        await yktx.prove();
-      }
-  console.log(`Sending blockchain transaction\n`)
-  await yktx.send();
-  console.log('YKProof init');
+//   });
+//   console.log(`Proving blockchain transaction\n`)
+//   if (doProofs) {
+//         await yktx.prove();
+//       }
+//   console.log(`Sending blockchain transaction\n`)
+//   await yktx.send();
+//   console.log('YKProof init');
     console.log(ykProofApp.commitment.get());
     console.log(ykProofApp.quizAnswerCommittment.get());
 

@@ -5,7 +5,8 @@ import {
     PrivateKey,
     Field,
     fetchAccount,
-    MerkleWitness
+    MerkleWitness,
+    AccountUpdate
   } from 'snarkyjs'
   
   type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -24,7 +25,13 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
     zkapp: null as null | YKProof,
     Add: null as null | typeof Add,
     zkapp2: null as null | Add,
-    transaction: null as null | Transaction
+    transaction: null as null | Transaction,
+    privateKey: null as null | PrivateKey,
+    feePayer: null as null | PrivateKey,
+
+    publicKey: null as null | PublicKey,
+
+    
   }
   
   // ---------------------------------------------------------------------------------------
@@ -36,10 +43,23 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
       console.log("YKProof");
     },
     setActiveInstanceToBerkeley: async (args: {}) => {
-      const Berkeley = Mina.BerkeleyQANet(
-        "https://proxy.berkeley.minaexplorer.com/graphql"
-      );
-      Mina.setActiveInstance(Berkeley);
+      // const Berkeley = Mina.BerkeleyQANet(
+      //   "https://proxy.berkeley.minaexplorer.com/graphql"
+      // );
+      // Mina.setActiveInstance(Berkeley);
+      const Local = Mina.LocalBlockchain();
+      Mina.setActiveInstance(Local);
+    },
+    setActiveInstanceToLocal: async (args: {}) => {
+     
+      const Local = Mina.LocalBlockchain();
+      Mina.setActiveInstance(Local);
+      state.feePayer = Local.testAccounts[0].privateKey;
+      const ykProofAccountKey = PrivateKey.random();
+      const ykProofAccountAddress = ykProofAccountKey.toPublicKey();
+      state.privateKey = ykProofAccountKey;
+      state.publicKey = ykProofAccountAddress;
+      return ykProofAccountAddress;
     },
     loadContract: async (args: {}) => {
       const { YKProof } = await import('../../contracts/build/src/YKProof.js');
@@ -59,6 +79,32 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
       const publicKey = PublicKey.fromBase58(args.publicKey58);
       return await fetchAccount({ publicKey });
     },
+    createAccount: async (args: {}) => {
+      let ykProofAccountKey = PrivateKey.random();
+      let ykProofAccountAddress = ykProofAccountKey.toPublicKey();
+      state.privateKey = ykProofAccountKey;
+      state.publicKey = ykProofAccountAddress;
+
+    },
+    deployApp: async(args: { }) =>{
+      const initialBalance = 100_000_000_000;
+
+      // console.log("Compiling ykProofApp..");
+      // await state.YKProof!.compile();
+      console.log('Deploying ykProofApp..');
+      console.log(state.feePayer!.toPublicKey().toBase58());
+      console.log(state.publicKey?.toBase58());
+      let yktx = await Mina.transaction(state.feePayer!, () => {
+        AccountUpdate.fundNewAccount(state.feePayer!, { initialBalance });
+        state.zkapp!.deploy({  zkappKey: state.privateKey!  });
+      
+      });
+      await yktx.send();
+  
+      console.log("ykProofApp deployed");
+      console.log("ykProofApp init");
+  
+    },
     initZkappInstance: async (args: { publicKey58: string }) => {
       const publicKey = PublicKey.fromBase58(args.publicKey58);
       state.zkapp = new state.YKProof!(publicKey);
@@ -66,6 +112,9 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
     initZkappInstance2: async (args: { publicKey58: string }) => {
       const publicKey = PublicKey.fromBase58(args.publicKey58);
       state.zkapp2 = new state.Add!(publicKey);
+    },
+    initZkapp: async (args: { }) => {
+      state.zkapp = new state.YKProof!(state.publicKey!);
     },
     getNum: async (args: {}) => {
       const currentNum = await state.zkapp!.quizAnswerCommittment.get();

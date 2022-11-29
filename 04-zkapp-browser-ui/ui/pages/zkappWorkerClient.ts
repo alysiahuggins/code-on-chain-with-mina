@@ -24,6 +24,11 @@ let MyMerkleWitness = MerkleWitness(8);
       return this._call('setActiveInstanceToBerkeley', {});
     }
 
+    async setActiveInstanceToLocal(): Promise<PublicKey>{
+      const result = await this._call('setActiveInstanceToLocal', {});
+      return result as PublicKey;
+    }
+
   
     loadContract() {
       return this._call('loadContract', {});
@@ -45,6 +50,10 @@ let MyMerkleWitness = MerkleWitness(8);
       const result = this._call('fetchAccount', { publicKey58: publicKey.toBase58() });
       return (result as ReturnType<typeof fetchAccount>);
     }
+
+    deployApp() {
+      return this._call('deployApp', {});
+    }
   
     initZkappInstance(publicKey: PublicKey) {
       return this._call('initZkappInstance', { publicKey58: publicKey.toBase58() });
@@ -52,6 +61,10 @@ let MyMerkleWitness = MerkleWitness(8);
 
     initZkappInstance2(publicKey: PublicKey) {
       return this._call('initZkappInstance2', { publicKey58: publicKey.toBase58() });
+    }
+
+    initZkapp() {
+      return this._call('initZkapp', { });
     }
   
     async getNum(): Promise<Field> {

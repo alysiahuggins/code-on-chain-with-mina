@@ -16,7 +16,8 @@ import {
   CircuitValue,
   UInt32,
   Poseidon,
-  isReady
+  isReady,
+  deploy
 } from 'snarkyjs'
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
@@ -64,26 +65,31 @@ export default function App() {
         await zkappWorkerClient.loadSnarkyJS();
         console.log('done');
 
-        console.log('Setting instance to Berkeley');
-        await zkappWorkerClient.setActiveInstanceToBerkeley();
-        console.log('Berkeley instance set up');
+        // console.log('Setting instance to Berkeley');
+        // await zkappWorkerClient.setActiveInstanceToBerkeley();
+        // console.log('Berkeley instance set up');
 
+        console.log('Setting instance to Local');
+        const publicKey = await zkappWorkerClient.setActiveInstanceToLocal();
+        const zkappPublicKey = publicKey;
+        console.log('Local instance set up');
 
-        const mina = (window as any).mina;
+        // const mina = (window as any).mina;
 
-        if (mina == null) {
-          setState({ ...state, hasWallet: false });
-          return;
-        }
+        // if (mina == null) {
+        //   setState({ ...state, hasWallet: false });
+        //   return;
+        // }
 
-        const publicKeyBase58 : string = (await mina.requestAccounts())[0];
-        const publicKey = PublicKey.fromBase58(publicKeyBase58);
+        // const publicKeyBase58 : string = (await mina.requestAccounts())[0];
+        // const publicKey = PublicKey.fromBase58(publicKeyBase58);
 
-        console.log('using key', publicKey.toBase58());
+        // console.log('using key', publicKey.toBase58());
 
-        console.log('checking if account exists...');
-        const res = await zkappWorkerClient.fetchAccount({ publicKey: publicKey! });
-        const accountExists = res.error == null;
+        // console.log('checking if account exists...');
+        // const res = await zkappWorkerClient.fetchAccount({ publicKey: publicKey! });
+        // const accountExists = res.error == null;
+        const accountExists = true;
 
         await zkappWorkerClient.loadContract();
 
@@ -91,31 +97,37 @@ export default function App() {
         await zkappWorkerClient.compileContract();
         console.log('zkApp compiled');
 
-        await zkappWorkerClient.loadContract2();
+        // await zkappWorkerClient.loadContract2();
 
-        console.log('compiling zkApp2');
-        await zkappWorkerClient.compileContract2();
-        console.log('zkApp2 compiled');
+        // console.log('compiling zkApp2');
+        // await zkappWorkerClient.compileContract2();
+        // console.log('zkApp2 compiled');
 
-        const zkappPublicKey = PublicKey.fromBase58('B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz');
-        const zkappPublicKey2 = PublicKey.fromBase58('B62qph2VodgSo5NKn9gZta5BHNxppgZMDUihf1g7mXreL4uPJFXDGDA');
-
-
-        await zkappWorkerClient.initZkappInstance(zkappPublicKey);
-        await zkappWorkerClient.initZkappInstance2(zkappPublicKey2);
+        // const zkappPublicKey = PublicKey.fromBase58('B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz');
+        // const zkappPublicKey2 = PublicKey.fromBase58('B62qph2VodgSo5NKn9gZta5BHNxppgZMDUihf1g7mXreL4uPJFXDGDA');
 
 
-        console.log('getting zkApp state...');
-        await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey })
-        await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey2 })
+        // await zkappWorkerClient.initZkappInstance(zkappPublicKey);
+        // await zkappWorkerClient.initZkappInstance2(zkappPublicKey2);
+        await zkappWorkerClient.initZkapp();
+
+
+
+        // console.log('getting zkApp state...');
+        // await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey })
+        // await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey2 })
+
+        console.log('now deploy');
+        await zkappWorkerClient.deployApp();
+        console.log('deployed');
 
         const currentNum = await zkappWorkerClient.getNum();
         console.log(currentNum);
         console.log('current state:', currentNum.toString());
 
-        const currentNum2 = await zkappWorkerClient.getNum2();
-        console.log(currentNum2);
-        console.log('current state2:', currentNum2.toString());
+        // const currentNum2 = await zkappWorkerClient.getNum2();
+        // console.log(currentNum2);
+        // console.log('current state2:', currentNum2.toString());
 
         
         let answerTree = createAnswerMerkleTree();
@@ -142,16 +154,17 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      if (state.hasBeenSetup && !state.accountExists) {
-        for (;;) {
-          console.log('checking if account exists...');
-          const res = await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! })
-          const accountExists = res.error == null;
-          if (accountExists) {
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        }
+      if(true ){
+      // if (state.hasBeenSetup && !state.accountExists) {
+        // for (;;) {
+        //   console.log('checking if account exists...');
+        //   const res = await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! })
+        //   const accountExists = res.error == null;
+        //   if (accountExists) {
+        //     break;
+        //   }
+        //   await new Promise((resolve) => setTimeout(resolve, 5000));
+        // }
         setState({ ...state, accountExists: true });
       }
     })();

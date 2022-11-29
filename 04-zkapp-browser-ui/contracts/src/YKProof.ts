@@ -26,7 +26,7 @@ import {
 import {answers as answers} from "../curriculum/curriculum.js";
 
 
-// await isReady; comment when using in berkeley
+// await isReady; //comment when using UI
 let initialBalance = 100_000_000_000;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -80,7 +80,7 @@ export class YKProof extends SmartContract {
                 ...Permissions.default(),
                 editState: Permissions.proofOrSignature(),
               });
-    //   this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
+      this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
 
     }
   
