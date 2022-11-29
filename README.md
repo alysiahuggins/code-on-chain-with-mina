@@ -10,18 +10,25 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 
 ### How to Run
 - Make sure you have npm installed and run the following commands within the project folder. 
-`npm install`
+`tokenClaimsUI` branch
+#### Running from Terminal
+`cd quiz-app`
+`npm install` (if running for the first time)
+
+##### Running on Local Mina Node (All features)
 `npm run build && node build/src/main.js`
 
-### Running on TokenClaims Branch for compiled contract (temp)
-`npm run build && node build/src/YKProofMain.js`
+##### Running on Berkeley (Only Quiz Feature works)
+`npm run build && node build/src/main.js`
 
-### Steps to Building this App
-- Create curriculum
-- Define Modules
-- Implement Modules
+### How to Deploy
 
-### Proposed Modules
+##### Running with Consolidated Contract
+- To make deployment to berkeley easier (one address for all smart contract functionality), I created a file called `contracts/YKProof.ts` which includes all the smart contract functionality required. I use this when testing my deployment to berkeley. To test, I use the file, `YKProofMain.ts` and then follow the Mina instructions on how to deploy. https://docs.minaprotocol.com/zkapps/how-to-deploy-a-zkapp
+
+## Notes
+
+### Proposed Curriculum
 - Mina Theory
 - ZK Theory
 - zkApp Theory
@@ -37,30 +44,22 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 
 
 ### Implementation Steps
-- Offchain questions and answers DONE
-- Offchain questions and answers stored on chain with merkle trees DONE
-- Reward user with token at the end of each module
-- Claim1: Store Users Name and Password in a Merkle Tree so that they can claim their tokens
-- Claim2: Allow Users to supply their own Mina Address to claim tokens
-- Offchain leaderboard stored on chain with merkle trees
-- Validate smart contract code with a test suite in the client
-- Valiate user response with a zkProof (thus a blockchain transaction) DONE
-- Add Tests
+- Offchain questions and answers (DONE)
+- Offchain questions and answers stored on chain with merkle trees (DONE)
+- Valiate user response with a zkProof i.e. a Mina blockchain transaction (DONE)
+- Claim1: Store Users Name and Password in a Merkle Tree so that they can claim their tokens (DONE)
 
+- Claim2: Allow Users to supply their own Mina Address to claim tokens (IN PROGRESS)
+- Validate user responses with recursive zkProofs (One blockchain transaction per module) (IN PROGRESS)
+- Reward user with token at the end of each module (IN PROGRESS)
+- Implement Modules (entry to learning then quiz section) (IN PROGRESS)
 
-- Implement Modules (entry to learning then quiz section)
-- Validate user responses with recursive zkProofs (One blockchain transaction per module)
-- Retrieve questions & answers from IPFS for merkle tree
-- Learn how to communicate with another deployed smart contract from within my Quiz Smart Contract
+- Offchain leaderboard stored on chain with merkle trees (NOT STARTED)
+- Validate smart contract code with a test suite in the client (NOT STARTED)
+- Add Tests (NOT STARTED)
+- Retrieve questions & answers from IPFS for merkle tree (NOT STARTED)
+- Learn how to communicate with another deployed smart contract from within my Quiz Smart Contract (NOT STARTED)
 
-### TODO
-- Offchain leaderboard stored on chain with merkle trees
-- Retrieve questions & answers from IPFS for merkle tree
-- Validate user responses with recursive zkProofs (One blockchain transaction per module)
-- Implement Modules (entry to learning then quiz section)
-- Reward user with token at the end of each module
-- Validate smart contract code with a test suite in the client
-- Learn how to communicate with another deployed smart contract from within my Quiz Smart Contract
 
 ### Questions for Mina Team
 - The user can only progress if they get all questions correct in each module. Should the quiz responses be stored as state variables and verified by smart contracts?

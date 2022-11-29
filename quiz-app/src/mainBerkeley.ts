@@ -1,7 +1,7 @@
 
 
 
-import { ClaimAccountV2 } from './ClaimAccountV2.js';
+import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
 import {
   isReady,
   shutdown,

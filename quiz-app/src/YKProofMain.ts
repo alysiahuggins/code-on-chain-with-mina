@@ -1,13 +1,6 @@
 /*
-Description: 
-
-This example describes how developers can use Merkle Trees as a basic off-chain storage tool.
-
-zkApps on Mina can only store a small amount of data on-chain, but many use cases require your application to at least reference big amounts of data.
-Merkle Trees give developers the power of storing large amounts of data off-chain, but proving its integrity to the on-chain smart contract!
-
-
-! Unfamiliar with Merkle Trees? No problem! Check out https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/
+* Uses the YKPRoof Contract which is a consolidation of all contracts needed
+* I use this to test locally before I deploy to Berkeley
 */
 
 import {
@@ -37,12 +30,12 @@ import {
     Ledger,
     CircuitString
   } from 'snarkyjs';
-  import { QuizToken } from './QuizToken.js';
-  import { QuizV2 } from './QuizV2.js';
-  import { ClaimAccountV2 } from './ClaimAccountV2.js';
+  import { QuizToken } from './contracts/QuizToken.js';
+  import { QuizV2 } from './contracts/Quiz.js';
+  import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
   
-  import { UserAccount } from './UserAccount.js';
-  import {YKProof} from './YKProof.js';
+  import { UserAccount } from './contracts/UserAccount.js';
+  import {YKProof} from './contracts/YKProof.js';
   
   import question from "./question.js";
   import {questions as questions} from "./curriculum/curriculum.js"

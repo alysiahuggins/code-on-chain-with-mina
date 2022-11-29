@@ -1,7 +1,7 @@
 
 
 
-import { YKProof } from './YKProof.js';
+import { YKProof } from './contracts/YKProof.js';
 import {
   isReady,
   shutdown,
@@ -24,7 +24,7 @@ import {
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
 import { AppRegisteredEventsDocument } from '@superfluid-finance/sdk-core/dist/module/subgraph/events/events.generated.js';
-import {Account, Answer} from './Classes.js';
+import {Account, Answer} from './contracts/Classes.js';
 import {questions as questions} from "./curriculum/curriculum.js"
 import {answers as answers} from "./curriculum/curriculum.js"
 import question from "./question.js";

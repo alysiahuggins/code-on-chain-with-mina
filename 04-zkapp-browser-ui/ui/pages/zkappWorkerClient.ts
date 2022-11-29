@@ -6,7 +6,7 @@ import {
     CircuitString,
     MerkleTree,MerkleWitness
   } from 'snarkyjs'
-import { AnswerMerkleWitness, Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classes.js';
+import { AnswerMerkleWitness, Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/contracts/Classes.js';
 let MyMerkleWitness = MerkleWitness(8);
 
   

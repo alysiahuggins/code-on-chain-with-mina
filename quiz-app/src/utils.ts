@@ -7,7 +7,7 @@ import {
     fetchAccount,
     SmartContract,
   } from 'snarkyjs';
-import { ClaimAccountSC } from './newMain';
+import { ClaimAccountSC } from './main';
   
   // ========================================================
   
