@@ -1,4 +1,5 @@
-import { Field, SmartContract, state, State, method } from 'snarkyjs';
+import { Field, SmartContract, state, State, method, Poseidon } from 'snarkyjs';
+class MyMerkleWitness extends MerkleWitness(8) {}
 
 /**
  * Basic Example
@@ -22,5 +23,8 @@ export class Add extends SmartContract {
     this.num.assertEquals(currentState); // precondition that links this.num.get() to the actual on-chain state
     const newState = currentState.add(2);
     this.num.set(newState);
+    let response = Field(4);
+    let hash = Poseidon.hash(response.toFields());
+
   }
 }

@@ -21,7 +21,6 @@ import {
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
 import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
-// import { AnswerMerkleWitness } from '../../../quiz-app/src/Classes';
 
 export class Answer extends CircuitValue {
   @prop answer: UInt32;
@@ -37,7 +36,7 @@ export class Answer extends CircuitValue {
 }
 
 let transactionFee = 0.1;
-let AnswerMerkleWitness = MerkleWitness(8);
+let MyMerkleWitness = MerkleWitness(8);
 
 export default function App() {
 
@@ -92,19 +91,35 @@ export default function App() {
         await zkappWorkerClient.compileContract();
         console.log('zkApp compiled');
 
+        await zkappWorkerClient.loadContract2();
+
+        console.log('compiling zkApp2');
+        await zkappWorkerClient.compileContract2();
+        console.log('zkApp2 compiled');
+
         const zkappPublicKey = PublicKey.fromBase58('B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz');
+        const zkappPublicKey2 = PublicKey.fromBase58('B62qph2VodgSo5NKn9gZta5BHNxppgZMDUihf1g7mXreL4uPJFXDGDA');
+
 
         await zkappWorkerClient.initZkappInstance(zkappPublicKey);
+        await zkappWorkerClient.initZkappInstance2(zkappPublicKey2);
+
 
         console.log('getting zkApp state...');
         await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey })
+        await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey2 })
+
         const currentNum = await zkappWorkerClient.getNum();
         console.log(currentNum);
         console.log('current state:', currentNum.toString());
 
+        const currentNum2 = await zkappWorkerClient.getNum2();
+        console.log(currentNum2);
+        console.log('current state2:', currentNum2.toString());
+
         
         let answerTree = createAnswerMerkleTree();
-        
+        state.answerTree = answerTree;
 
         setState({ 
             ...state, 
@@ -117,8 +132,6 @@ export default function App() {
             currentNum,
             answerTree
         });
-        console.log(state.answerTree);
-       await onAnswerTransaction();
 
       }
     })();
@@ -153,7 +166,7 @@ export default function App() {
 
     await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
 
-    await state.zkappWorkerClient!.createUpdateTransaction();
+    await state.zkappWorkerClient!.createUpdateTransaction2();
 
     console.log('creating proof...');
     await state.zkappWorkerClient!.proveUpdateTransaction();
@@ -182,8 +195,10 @@ export default function App() {
   // Answer a question  transaction
 
   const onAnswerTransaction = async () => {
+    console.log('onAnswerTransaction')
+    console.log(state.answerTree);
     let w = state.answerTree!.getWitness(BigInt(0));
-    let witness = new AnswerMerkleWitness(w);
+    let witness = new MyMerkleWitness(w);
     setState({ ...state, creatingTransaction: true });
     console.log('sending answer transaction...');
 
@@ -214,6 +229,41 @@ export default function App() {
     setState({ ...state, creatingTransaction: false });
   }
 
+
+  const onTransaction = async () => {
+    console.log('onTransaction')
+    console.log(state.answerTree);
+    let w = state.answerTree!.getWitness(BigInt(0));
+    let witness = new MyMerkleWitness(w);
+    setState({ ...state, creatingTransaction: true });
+    // console.log('sending answer transaction...');
+
+    // await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
+
+    // await state.zkappWorkerClient!.createValidateQuestionTransaction(Field(4), witness);
+
+
+    // console.log('creating proof...');
+    // await state.zkappWorkerClient!.proveUpdateTransaction();
+
+    console.log('getting Transaction JSON...');
+    const transactionJSON = await state.zkappWorkerClient!.validateQuestionTransaction(Field(4), witness);
+
+    console.log('requesting send transaction...');
+    const { hash } = await (window as any).mina.sendTransaction({
+      transaction: transactionJSON,
+      feePayer: {
+        fee: transactionFee,
+        memo: '',
+      },
+    });
+
+    console.log(
+      'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
+    );
+
+    setState({ ...state, creatingTransaction: false });
+  }
   // -------------------------------------------------------
   // Refresh the current state
 
@@ -241,7 +291,9 @@ export default function App() {
     }
   
     // now that we got our accounts set up, we need the commitment to deploy our contract!
+    console.log(answerTree.getRoot());
     return answerTree;
+
 }
 
 
@@ -293,23 +345,24 @@ export default function App() {
     e.preventDefault();
     alert(`${questionResponse}`);
     let w = state.answerTree!.getWitness(BigInt(0));
-    let witness = new AnswerMerkleWitness(w);
+    let witness = new MyMerkleWitness(w);
     // onAnswerTransaction(Field(4), witness);
-    onAnswerTransaction();
+    onTransaction();
   };
 
   let mainContent;
   let quizContent;
   if (state.hasBeenSetup && state.accountExists) {
     let w = state.answerTree!.getWitness(BigInt(0));
-    let witness = new AnswerMerkleWitness(w);
-    ;
+    let witness = new MyMerkleWitness(w);
+    
+
     mainContent = 
     <Container fluid="sm" className="text-center">
       <Row>
         <Col></Col>
         <Col>
-          <Button onClick={onAnswerTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
+          <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
           <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
           <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
         </Col>
@@ -372,7 +425,7 @@ export default function App() {
             checked={questionResponse === "3"}
           />
         </Form.Group>
-        <Button variant="primary" type="submit" disabled={state.creatingTransaction}>
+        <Button variant="primary" type="submit" >
           Submit
         </Button>
       </Form>
@@ -390,7 +443,7 @@ export default function App() {
    { setup }
 
    { accountDoesNotExist }
-   { mainContent }
+   {/* { mainContent } */}
    { quizContent }
    
 

@@ -152,7 +152,7 @@ export class YKProof extends SmartContract {
         this.quizAnswerCommittment.assertEquals(quizAnswerCommittment);
     
         // we check that the response is the same as the hash of the answer at that path
-        path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(quizAnswerCommittment);
+        path.calculateRoot(Poseidon.hash([response])).assertEquals(quizAnswerCommittment);
       }
 
       // QUiz TOken

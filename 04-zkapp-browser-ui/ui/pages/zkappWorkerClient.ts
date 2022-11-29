@@ -6,7 +6,7 @@ import {
     CircuitString,
     MerkleTree,MerkleWitness
   } from 'snarkyjs'
-import { AnswerMerkleWitness } from '../../../quiz-app/src/Classes.js';
+import { AnswerMerkleWitness, Account, ClaimAccountMerkleWitness } from '../../../quiz-app/src/Classes.js';
 let MyMerkleWitness = MerkleWitness(8);
 
   
@@ -32,6 +32,14 @@ let MyMerkleWitness = MerkleWitness(8);
     compileContract() {
       return this._call('compileContract', {});
     }
+
+    loadContract2() {
+      return this._call('loadContract2', {});
+    }
+  
+    compileContract2() {
+      return this._call('compileContract2', {});
+    }
   
     fetchAccount({ publicKey }: { publicKey: PublicKey }): ReturnType<typeof fetchAccount> {
       const result = this._call('fetchAccount', { publicKey58: publicKey.toBase58() });
@@ -41,9 +49,18 @@ let MyMerkleWitness = MerkleWitness(8);
     initZkappInstance(publicKey: PublicKey) {
       return this._call('initZkappInstance', { publicKey58: publicKey.toBase58() });
     }
+
+    initZkappInstance2(publicKey: PublicKey) {
+      return this._call('initZkappInstance2', { publicKey58: publicKey.toBase58() });
+    }
   
     async getNum(): Promise<Field> {
       const result = await this._call('getNum', {});
+      return Field.fromJSON(JSON.parse(result as string));
+    }
+
+    async getNum2(): Promise<Field> {
+      const result = await this._call('getNum2', {});
       return Field.fromJSON(JSON.parse(result as string));
     }
 
@@ -53,12 +70,20 @@ let MyMerkleWitness = MerkleWitness(8);
     }
 
   
-    createUpdateTransaction() {
+    createUpdateTransaction(account: Account, path: ClaimAccountMerkleWitness) {
       return this._call('createUpdateTransaction', {});
+    }
+
+    createUpdateTransaction2() {
+      return this._call('createUpdateTransaction2', {});
     }
 
     createValidateQuestionTransaction(response: Field, path:AnswerMerkleWitness) {
       return this._call('createValidateQuestionTransaction', { response, path});
+    }
+
+    validateQuestionTransaction(response: Field, path:AnswerMerkleWitness) {
+      return this._call('validateQuestionTransaction', { response, path});
     }
   
     signUpdateTransaction(zkappKey: PrivateKey[]) {

@@ -48,7 +48,7 @@ export class Answer extends CircuitValue {
   }
 
 export class ClaimAccountMerkleWitness extends MerkleWitness(8) {}
-export class AnswerMerkleWitness extends MerkleWitness(8) {}
+export class MyMerkleWitness extends MerkleWitness(8) {}
 
 export function createAnswerMerkleTree(){
     let committment: Field = Field(0);
