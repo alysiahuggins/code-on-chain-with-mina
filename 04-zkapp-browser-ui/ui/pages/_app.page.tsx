@@ -362,7 +362,7 @@ export default function App() {
       <Row>
         <Col></Col>
         <Col>
-          <Button onClick={onSendTransaction} disabled={state.creatingTransaction}> Send Transaction </Button>
+          <Button onClick={onSendTransaction} /*disabled={state.creatingTransaction}*/> Send Transaction </Button>
           <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
           <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
         </Col>
@@ -443,7 +443,7 @@ export default function App() {
    { setup }
 
    { accountDoesNotExist }
-   {/* { mainContent } */}
+   { mainContent }
    { quizContent }
    
 
