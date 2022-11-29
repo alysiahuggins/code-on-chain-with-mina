@@ -4,17 +4,10 @@
 */
 
 import {
-    SmartContract,
     isReady,
     Poseidon,
     Field,
-    Permissions,
-    DeployArgs,
-    State,
-    state,
     CircuitValue,
-    PublicKey,
-    UInt64,
     prop,
     Mina,
     method,
@@ -25,22 +18,19 @@ import {
     MerkleWitness,
     shutdown,
     Experimental,
-    VerificationKey,
-    Int64,
     Ledger,
     CircuitString
   } from 'snarkyjs';
   import { QuizToken } from './contracts/QuizToken.js';
   import { QuizV2 } from './contracts/Quiz.js';
   import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
-  
   import { UserAccount } from './contracts/UserAccount.js';
   import {YKProof} from './contracts/YKProof.js';
   
   import question from "./question.js";
-  import {questions as questions} from "./curriculum/curriculum.js"
+  import {questions10 as questions} from "./curriculum/curriculum.js"
   
-  import {answers as answers} from "./curriculum/curriculum.js"
+  import {answers10 as answers} from "./curriculum/curriculum.js"
   
   
   await isReady;
@@ -132,127 +122,6 @@ import {
     
     return committment;
   }
-  
-  export class Quiz2 extends SmartContract {
-    @state(Field) highestScore = State<Field>();
-    @state(Field) totalQuestions = State<Field>();
-    // a commitment is a cryptographic primitive that allows us to commit to data, with the ability to "reveal" it later
-    @state(Field) commitment = State<Field>();
-  
-    deploy(args: DeployArgs) {
-    super.deploy(args);
-    this.setPermissions({
-      ...Permissions.default(),
-      editState: Permissions.proofOrSignature(),
-    });
-    this.totalQuestions.set(Field(5));
-    this.balance.addInPlace(UInt64.from(initialBalance));
-  
-    // this.commitment.set(this.createMerkleTree());
-    }
-  
-    // @method init(zkappKey: PrivateKey) {
-    //   super.init(zkappKey);
-    //   this.highestScore.set(Field(0));
-    //   this.totalQuestions.set(Field(5));
-    //   this.totalQuestions.set(Field(1));
-    // }
-  
-    init(){
-      super.init();
-      this.commitment.set(this.createMerkleTree());
-    }
-  
-    createMerkleTree(){
-      let committment: Field = Field(0);
-    
-      let Answers: Map<number, Answer> = new Map<number, Answer>();
-      for(let i in answers){
-          let thisAnswer = new Answer(UInt32.from(answers[i].answer));
-          Answers.set(parseInt(i), thisAnswer);
-          answerTree.setLeaf(BigInt(i), thisAnswer.hash());
-      }
-    
-      // now that we got our accounts set up, we need the commitment to deploy our contract!
-      committment = answerTree.getRoot();
-      return committment;
-    }
-    
-  
-    @method validateQuestionResponse(response: Field, path: MyMerkleWitness){
-      
-      let commitment = this.commitment.get();
-      this.commitment.assertEquals(commitment);
-  
-      // we check that the response is the same as the hash of the answer at that path
-      path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(commitment);
-    }
-  
-  }
-  
-  export class ClaimAccountSC extends SmartContract {
-    @state(Field) commitment = State<Field>();
-  
-    // deploy(args: DeployArgs) {
-    //   super.deploy(args);
-    //   this.setPermissions({
-    //     ...Permissions.default(),
-    //     editState: Permissions.proofOrSignature(),
-    //   });
-    //   this.balance.addInPlace(UInt64.from(initialBalance));
-    //   this.commitment.set(initialClaimTreeCommittment);
-    // }
-  
-    
-    @method validateAccountPassword(account: Account, path: ClaimAccountMerkleWitness){
-  
-      let commitment = this.commitment.get();
-      this.commitment.assertEquals(commitment);
-  
-      // we check that the response is the same as the hash of the answer at that path
-      path.calculateRoot(Poseidon.hash(account.toFields())).assertEquals(commitment);
-  
-    }
-  
-    @method createAccount(account:Account, path: ClaimAccountMerkleWitness){
-      
-      let commitment = this.commitment.get();
-      this.commitment.assertEquals(commitment);
-  
-      // we check that the account is not in the tree
-      try{
-        path.calculateRoot(Poseidon.hash(account.toFields())).assertEquals(commitment);
-      }catch(e){
-        //assert failed which is what we expect so now we create the account in the tree
-        let newCommitment = path.calculateRoot(account.hash());
-        this.commitment.set(newCommitment);
-      }
-  
-    }
-  
-    init(){
-      super.init();
-      this.balance.addInPlace(UInt64.from(initialBalance));
-      this.commitment.set(this.createClaimAccountMerkleTree());
-    }
-  
-    createClaimAccountMerkleTree(){
-      let committment: Field = Field(0);
-      let username = "alysia";
-      let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Field(false));
-    
-      usernames[usernames.length] = username;
-      Accounts.set(username, account);
-      claimAccountTree.setLeaf(BigInt(0), account.hash());
-    
-      // now that we got our accounts set up, we need the commitment to deploy our contract!
-      committment = claimAccountTree.getRoot();
-      
-      return committment;
-    }
-  
-  }
-  
   
   
   
@@ -459,18 +328,18 @@ import {
                  ykProofApp.sign(ykProofAccountKey);
   
              });
-             console.log(`Proving blockchain transaction for question ${i}\n`)
+             console.log(`Proving blockchain transaction for question ${i}`)
              if (doProofs) {
                   await txn.prove();
                 }
-                console.log(`Sending blockchain transaction for question ${i}\n`)
+                console.log(`Sending blockchain transaction for question ${i}`)
              await txn.send();
-             console.log('Correct');
+             console.log('Correct :)');
              pass = true;
              retry = false;
          }
          catch(e){
-            //  console.log("You encountered the following error"+e);
+             console.log("You encountered the following error"+e);
              pass = false;
              console.log("Incorrect. Ending Quiz");
              break;
@@ -547,6 +416,65 @@ import {
         usernames[usernames.length] = username;
       }
       console.log(`create custodial account for ${rewardAddressResponse}`);
+
+      var rewardAddressResponse = await question(`Would you like to claim your rewards now??\n`);
+      if(rewardAddressResponse=='no') {
+        console.log(`Thanks for playing`);
+        shutdown();
+      }else{
+        var username = await question(`Please enter your username?\n`)
+        var password = await question(`Please enter your password\n`);
+        let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+        let usernameIndex = usernames.findIndex((obj) => {
+            return obj === username;
+          })!;
+        
+        let w = claimAccountTree.getWitness(BigInt(usernameIndex));
+        let witness = new ClaimAccountMerkleWitness(w);
+          
+  
+        let txn = await Mina.transaction(ykProofFeePayer, () => {
+          ykProofApp.validateAccountPassword(account, witness);
+          ykProofApp.sign(ykProofAccountKey);
+  
+        });
+        console.log(`Proving blockchain transaction\n`)
+        if (doProofs) {
+              await txn.prove();
+        }
+        console.log(`Sending blockchain transaction\n`)
+        await txn.send();
+        console.log('Found');
+        
+        console.log(`process claim - send tokens to the address that they specify`)
+        try{
+          let tx = await Local.transaction(feePayer, () => {
+            let approveSendingCallback = Experimental.Callback.create(
+              userAccountApp,
+              'approveSend',
+              []
+            );
+            // we call the token contract with the callback
+            ykProofApp.sendTokens(winnerKeyAddress, winnerKeyAddress, approveSendingCallback);
+            ykProofApp.sign(ykProofAccountKey);
+  
+          });
+          console.log('approve send (proof)');
+          await tx.prove();
+          console.log('send (proof)');
+          await tx.send();
+          console.log('token sent getting Token balance')
+          console.log(
+          `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+          Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+      );
+        }catch(e){
+          console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
+          console.log(e);
+        }
+  
+        console.log(`TODO rebuild merkle tree with username data from a previous session`)
+      }
   
     }else{
       var rewardAddressResponse = await question(`Would you like to claim your rewards now??\n`);
@@ -605,19 +533,12 @@ import {
           console.log(e);
         }
   
-        console.log(`TODO store usernames locally in file in app`)
+        console.log(`TODO rebuild merkle tree with username data from a previous session`)
   
   
       }
    }
   }
-  
-   var score = 0;
-   if(retryCount == 0) score = 10;
-   else if(retryCount == 1) score = 5;
-   else if(retryCount == 2) score = 2;
-   else if(retryCount == 3) score = 1;
-   else if(retryCount >= 4) score = 0;
   
    shutdown();
   

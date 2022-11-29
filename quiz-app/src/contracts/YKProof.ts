@@ -27,7 +27,7 @@ import {
     VerificationKey
   } from 'snarkyjs';
 
-  import {answers as answers} from "../curriculum/curriculum.js"
+  import {answers10 as answers} from "../curriculum/curriculum.js"
 
 await isReady; //comment this when deploying to berkeley
 let initialBalance = 100_000_000_000;

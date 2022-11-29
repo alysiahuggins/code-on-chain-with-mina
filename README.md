@@ -29,6 +29,13 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 
 ## Notes
 
+### Features
+- Quiz (works on Local, Berkeley Testnet)
+- Token Minting & sending (works on Local)
+- Claim Accounts (works on Local, not yet tested on Berkeley)
+- Leaderboard (not implemented yet)
+- Single Transaction per Quiz Module i.e. Recursive Proofs (not implemented yet)
+
 ### Proposed Curriculum
 - Mina Theory
 - ZK Theory
