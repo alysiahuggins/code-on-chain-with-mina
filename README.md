@@ -13,6 +13,7 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 `tokenClaimsUI` branch
 #### Running from Terminal
 `cd quiz-app`
+
 `npm install` (if running for the first time)
 
 ##### Running on Local Mina Node (All features)
