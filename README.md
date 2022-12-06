@@ -39,6 +39,16 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 - Leaderboard (not implemented yet)
 - Single Transaction per Quiz Module i.e. Recursive Proofs (not implemented yet)
 
+#### Features implemented in terminal
+- Quiz (works on Local, Berkeley Testnet)
+- Token Minting & sending (works on Local)
+- Claim Accounts (works on Local, not yet tested on Berkeley)
+
+##### Features implemented in frontend
+###### Todo
+- quiz
+- token minting
+
 ### Proposed Curriculum
 - Mina Theory
 - ZK Theory

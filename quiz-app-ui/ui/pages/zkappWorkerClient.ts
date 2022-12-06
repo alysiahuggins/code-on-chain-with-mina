@@ -41,8 +41,8 @@ export default class ZkappWorkerClient {
     return Field.fromJSON(JSON.parse(result as string));
   }
 
-  createUpdateTransaction(response: number, questionPosition: number) {
-    return this._call('createUpdateTransaction', {response: response, questionPosition: questionPosition});
+  async createUpdateTransaction(response: number, questionPosition: number) {
+    return await this._call('createUpdateTransaction', {response: response, questionPosition: questionPosition});
   }
 
   proveUpdateTransaction() {

@@ -15,7 +15,7 @@ import {
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
 import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
-
+let index = 0;
 
 
 let transactionFee = 0.1;
@@ -117,33 +117,50 @@ export default function App() {
   // Send a transaction
 
   const onSendTransaction = async (response:number, questionPosition:number) => {
-    setState({ ...state, creatingTransaction: true });
-    console.log('sending a transaction...');
+    try{
+      setState({ ...state, creatingTransaction: true });
+      console.log('sending a transaction...');
 
-    await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
+      await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
 
-    await state.zkappWorkerClient!.createUpdateTransaction(response, questionPosition);
+      let txCreated = await state.zkappWorkerClient!.createUpdateTransaction(response, questionPosition);
+      if(txCreated){
+        console.log('creating proof...');
+        await state.zkappWorkerClient!.proveUpdateTransaction();
 
-    console.log('creating proof...');
-    await state.zkappWorkerClient!.proveUpdateTransaction();
+        console.log('getting Transaction JSON...');
+        const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON()
+        console.log(transactionJSON);
+        console.log('requesting send transaction...');
+        const { hash } = await (window as any).mina.sendTransaction({
+          transaction: transactionJSON,
+          feePayer: {
+            fee: transactionFee,
+            memo: '',
+          },
+        });
 
-    console.log('getting Transaction JSON...');
-    const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON()
-    console.log(transactionJSON);
-    console.log('requesting send transaction...');
-    const { hash } = await (window as any).mina.sendTransaction({
-      transaction: transactionJSON,
-      feePayer: {
-        fee: transactionFee,
-        memo: '',
-      },
-    });
+        console.log(
+          'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
+        );
+        setState({ ...state, creatingTransaction: false });
 
-    console.log(
-      'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
-    );
+        return true;
 
-    setState({ ...state, creatingTransaction: false });
+      }else{
+        setState({ ...state, creatingTransaction: false });
+        return false;
+      }
+      
+      
+    }catch(e){
+      setState({ ...state, creatingTransaction: false });
+
+      console.log("error caught")
+      console.log(e)
+      return false
+    }
+    
   }
 
   
@@ -161,7 +178,7 @@ export default function App() {
 
   // -------------------------------------------------------
   // Other Methods
-  const [item, setItem] = useState({ quizOption: "", another: "another" });
+  const [item, setItem] = useState({ quizOption: "", another: "another", index:0 });
 
   const { quizOption: questionResponse } = item;
 
@@ -172,23 +189,55 @@ export default function App() {
 
     setItem(prevState => ({
       ...prevState,
-      quizOption: e.target.value
+      quizOption: e.target.value,
+      // index: index+1
     }));
   };
 
   const  handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`${questionResponse}`);
+    // e.persist();
+
+    // alert(`${questionResponse}`);
     let formID = e.target.id;
     let questionNumber = formID.split('-')[1];
     let response = parseInt(questionResponse)+1;
     console.log(`${response} was the response to ${questionNumber}`);
-    await onSendTransaction(response,questionNumber);
+    let result = false;
+    try{
+      result = await onSendTransaction(response,questionNumber);
+      console.log(result)
+      if (index<answers.length-1 && result) {
+        console.log("set item")
+        let newIndex = index+1;
+        console.log(index,newIndex)
+        
+        setItem(prevState => ({
+          ...prevState,
+          index: index+1
+        }));
+        console.log(index)
+        index = index+1
+  
+      }
+      else if(index>=answers.length-1 && result) {
+        alert("You won!");
+        index = 0;
+        setItem(prevState => ({
+          ...prevState,
+          index: 0
+        }));
+      }
+      else if(result==false){
+        alert("Incorrect")
 
-    // let w = state.answerTree!.getWitness(BigInt(0));
-    // let witness = new MyMerkleWitness(w);
-    // onAnswerTransaction(Field(4), witness);
-    // onTransaction();
+      }
+    }catch(e){
+      console.log('error encountered')
+      console.log(e);
+      alert("Incorrect")
+    }
+    
   };
 
   // -------------------------------------------------------
@@ -248,7 +297,7 @@ export default function App() {
         <Row>
           <Col>
             <Form>
-            <h3>{questionsRadio[0].question}</h3>
+            <h3>{questionsRadio[index].question}</h3>
             <InputGroup>
             {/* {['checkbox', 'radio'].map((type) => (
           <div key={`default-${type}`} className="mb-3">
@@ -268,7 +317,7 @@ export default function App() {
               value="0"
               type="radio"
               aria-label="radio 1"
-              label={questionsRadio[0].options[0]}
+              label={questionsRadio[index].options[0]}
               onChange={handleChange}
               checked={questionResponse === "0"}
             />
@@ -276,7 +325,7 @@ export default function App() {
               value="1"
               type="radio"
               aria-label="radio 2"
-              label={questionsRadio[0].options[1]}
+              label={questionsRadio[index].options[1]}
               onChange={handleChange}
               checked={questionResponse === "1"}
             />
@@ -285,7 +334,7 @@ export default function App() {
               value="2"
               type="radio"
               aria-label="radio 2"
-              label={questionsRadio[0].options[2]}
+              label={questionsRadio[index].options[2]}
               onChange={handleChange}
               checked={questionResponse === "2"}
             />
@@ -293,7 +342,7 @@ export default function App() {
               value="3"
               type="radio"
               aria-label="radio 2"
-              label={questionsRadio[0].options[3]}
+              label={questionsRadio[index].options[3]}
               onChange={handleChange}
               checked={questionResponse === "3"}
             />

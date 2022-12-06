@@ -106,16 +106,30 @@ const functions = {
     return JSON.stringify(currentNum.toJSON());
   },
   createUpdateTransaction: async (args: {response: number, questionPosition: number}) => {
-    let w = state.answerTree!.getWitness(BigInt(args.questionPosition));
-    let witness = new MyMerkleWitness(w);
-    const transaction = await Mina.transaction(() => {
-        state.zkapp!.validateQuestionResponse(Field(args.response), witness);
-      }
-    );
-    state.transaction = transaction;
+    try{
+      let w = state.answerTree!.getWitness(BigInt(args.questionPosition));
+      let witness = new MyMerkleWitness(w);
+      const transaction = await Mina.transaction(() => {
+          state.zkapp!.validateQuestionResponse(Field(args.response), witness);
+        }
+      );
+      state.transaction = transaction;
+      return true;
+    }catch(e){ 
+      console.log("error from create tx")
+      console.log(e)
+      return false;
+    }
   },
   proveUpdateTransaction: async (args: {}) => {
-    await state.transaction!.prove();
+    try{
+      await state.transaction!.prove();
+      return true;
+    }catch(e){
+      console.log("error from proof")
+      console.log(e)
+      return false;
+    }
   },
   getTransactionJSON: async (args: {}) => {
     return state.transaction!.toJSON();
