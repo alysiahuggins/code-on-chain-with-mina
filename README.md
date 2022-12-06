@@ -8,6 +8,9 @@ The user has to answer quizzes which are verified by a smart contract.
 At the end of each module, the users are expected to deploy a smart contract that demonstrates the concepts that they have learnt. 
 CodeOnChain's mina smart contract tests their smart contract by interacting with methods to see if the desired outcome is achieved and if possible, also verifies key lines of code. 
 
+Current Deployed Smart Contract: 
+https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
+
 ### How to Run
 - Make sure you have npm installed and run the following commands within the project folder. 
 `tokenClaimsUI` branch
@@ -83,6 +86,10 @@ Or is it ok to be stored offchain and verified on the client?
 #### Token Claims
 When the user completes the quiz and got all the questions correctly, QuizTokens are minted to an address that we control.
 Users can claim these tokens to their address when they want, in the meanwhile, the user's username and password is stored in a merkletree.
+
+### Gotcha's
+#### Verification Keys
+If the verification key is different that the deployed smart contract verification, make sure you are using the same snarkyjs version in package.json. Your verification keys are different (the one in your client app vs what's deployed on Mina) when you try to send a transaction with Auro wallet and get the error `Couldn't send zkApp command: verification_failed invalid_proof`. See details on Mina's discord here https://discord.com/channels/484437221055922177/1047268822530392084
 
 
 ### Errors and Workarounds
