@@ -1,6 +1,9 @@
 import '../styles/globals.css'
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
+import { Container, Row, Col, Button, Card, Form, Image, InputGroup } from 'react-bootstrap'
+// import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/css/bootstrap.css';
 
 import ZkappWorkerClient from './zkappWorkerClient';
 
@@ -9,6 +12,10 @@ import {
   PrivateKey,
   Field,
 } from 'snarkyjs'
+
+import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
+import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
+
 
 
 let transactionFee = 0.1;
@@ -152,6 +159,32 @@ export default function App() {
   }
 
   // -------------------------------------------------------
+  // Other Methods
+  const [item, setItem] = useState({ kindOfStand: "", another: "another" });
+
+  const { kindOfStand: questionResponse } = item;
+
+
+  const handleChange = e => {
+    e.persist();
+    console.log(e.target.value);
+
+    setItem(prevState => ({
+      ...prevState,
+      kindOfStand: e.target.value
+    }));
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    alert(`${questionResponse}`);
+    // let w = state.answerTree!.getWitness(BigInt(0));
+    // let witness = new MyMerkleWitness(w);
+    // onAnswerTransaction(Field(4), witness);
+    // onTransaction();
+  };
+
+  // -------------------------------------------------------
   // Create UI elements
 
   let hasWallet;
@@ -162,29 +195,122 @@ export default function App() {
   }
 
   let setupText = state.hasBeenSetup ? 'SnarkyJS Ready' : 'Setting up SnarkyJS...';
-  let setup = <div> { setupText } { hasWallet }</div>
+  // let setup = <div> { setupText } { hasWallet }</div>
+  let setup = <Container className="text-center"> { setupText } { hasWallet }</Container>
+  let logoContent = 
+  <Container fluid="sm" className="text-center">
+    <Row>
+      <Col>
+      <Card.Img src='/images/ykp-logo.png'   alt="logo"/>
+      </Col>
+    </Row>
+  </Container>
 
   let accountDoesNotExist;
   if (state.hasBeenSetup && !state.accountExists) {
     const faucetLink = "https://faucet.minaprotocol.com/?address=" + state.publicKey!.toBase58();
-    accountDoesNotExist = <div>
+    accountDoesNotExist = <Container>
       Account does not exist. Please visit the faucet to fund this account
       <a href={faucetLink} target="_blank" rel="noreferrer"> [Link] </a>
-    </div>
+    </Container>
   }
 
-  let mainContent;
+  let mainContent, quizContent;
   if (state.hasBeenSetup && state.accountExists) {
-    mainContent = <div>
-      <button onClick={() => onSendTransaction(4,0)} /*disabled={state.creatingTransaction}*/> Send Transaction </button>
-      <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
-      <button onClick={onRefreshCurrentNum}> Get Latest State </button>
-    </div>
+    mainContent = 
+    // <div>
+    //   <button onClick={() => onSendTransaction(4,0)} /*disabled={state.creatingTransaction}*/> Send Transaction </button>
+    //   <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
+    //   <button onClick={onRefreshCurrentNum}> Get Latest State </button>
+    // </div>
+
+    <Container fluid="sm" className="text-center">
+    <Row>
+      <Col></Col>
+      <Col>
+        <Button onClick={() => onSendTransaction(4,0)} /*disabled={state.creatingTransaction}*/> Send Transaction </Button>
+        <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
+        <Button onClick={onRefreshCurrentNum}> Get Latest State </Button>
+      </Col>
+      <Col></Col>
+    </Row>
+    </Container>;
+
+    quizContent = 
+      <Container fluid="sm" className="text-center">
+        <Row>
+          <Col>
+            <Form>
+            <h3>{questionsRadio[0].question}</h3>
+            <InputGroup>
+            {/* {['checkbox', 'radio'].map((type) => (
+          <div key={`default-${type}`} className="mb-3">
+            <InputGroup.Radio
+              type="radio"
+              id={`default-${type}`}
+              label={`default ${type}`}
+            />
+            <InputGroup.Radio aria-label="Radio button for following text input" />
+          </div>
+        ))} */}
+        </InputGroup>
+          </Form>
+          <Form onSubmit={handleSubmit}>
+          <Form.Group controlId="kindOfStand">
+            <Form.Check
+              value="0"
+              type="radio"
+              aria-label="radio 1"
+              label={questionsRadio[0].options[0]}
+              onChange={handleChange}
+              checked={questionResponse === "0"}
+            />
+            <Form.Check
+              value="1"
+              type="radio"
+              aria-label="radio 2"
+              label={questionsRadio[0].options[1]}
+              onChange={handleChange}
+              checked={questionResponse === "1"}
+            />
+
+          <Form.Check
+              value="2"
+              type="radio"
+              aria-label="radio 2"
+              label={questionsRadio[0].options[2]}
+              onChange={handleChange}
+              checked={questionResponse === "2"}
+            />
+            <Form.Check
+              value="3"
+              type="radio"
+              aria-label="radio 2"
+              label={questionsRadio[0].options[3]}
+              onChange={handleChange}
+              checked={questionResponse === "3"}
+            />
+          </Form.Group>
+          <Button variant="primary" type="submit" >
+            Submit
+          </Button>
+        </Form>
+          
+        
+          </Col>
+        </Row>
+      </Container>;
   }
+
+  
+
+   
 
   return <div>
+   { logoContent }
    { setup }
    { accountDoesNotExist }
    { mainContent }
+   { quizContent }
   </div>
 }

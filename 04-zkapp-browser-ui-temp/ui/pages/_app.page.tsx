@@ -370,70 +370,70 @@ export default function App() {
       </Row>
     </Container>;
 
-    quizContent = 
-    <Container fluid="sm" className="text-center">
-      <Row>
-        <Col>
-          <Form>
-          <h3>{questionsRadio[0].question}</h3>
-          <InputGroup>
-          {/* {['checkbox', 'radio'].map((type) => (
-        <div key={`default-${type}`} className="mb-3">
-          <InputGroup.Radio
-            type="radio"
-            id={`default-${type}`}
-            label={`default ${type}`}
-          />
-          <InputGroup.Radio aria-label="Radio button for following text input" />
-        </div>
-      ))} */}
-      </InputGroup>
-        </Form>
-        <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="kindOfStand">
-          <Form.Check
-            value="0"
-            type="radio"
-            aria-label="radio 1"
-            label={questionsRadio[0].options[0]}
-            onChange={handleChange}
-            checked={questionResponse === "0"}
-          />
-          <Form.Check
-            value="1"
-            type="radio"
-            aria-label="radio 2"
-            label={questionsRadio[0].options[1]}
-            onChange={handleChange}
-            checked={questionResponse === "1"}
-          />
+    // quizContent = 
+    // <Container fluid="sm" className="text-center">
+    //   <Row>
+    //     <Col>
+    //       <Form>
+    //       <h3>{questionsRadio[0].question}</h3>
+    //       <InputGroup>
+    //       {/* {['checkbox', 'radio'].map((type) => (
+    //     <div key={`default-${type}`} className="mb-3">
+    //       <InputGroup.Radio
+    //         type="radio"
+    //         id={`default-${type}`}
+    //         label={`default ${type}`}
+    //       />
+    //       <InputGroup.Radio aria-label="Radio button for following text input" />
+    //     </div>
+    //   ))} */}
+    //   </InputGroup>
+    //     </Form>
+    //     <Form onSubmit={handleSubmit}>
+    //     <Form.Group controlId="kindOfStand">
+    //       <Form.Check
+    //         value="0"
+    //         type="radio"
+    //         aria-label="radio 1"
+    //         label={questionsRadio[0].options[0]}
+    //         onChange={handleChange}
+    //         checked={questionResponse === "0"}
+    //       />
+    //       <Form.Check
+    //         value="1"
+    //         type="radio"
+    //         aria-label="radio 2"
+    //         label={questionsRadio[0].options[1]}
+    //         onChange={handleChange}
+    //         checked={questionResponse === "1"}
+    //       />
 
-        <Form.Check
-            value="2"
-            type="radio"
-            aria-label="radio 2"
-            label={questionsRadio[0].options[2]}
-            onChange={handleChange}
-            checked={questionResponse === "2"}
-          />
-          <Form.Check
-            value="3"
-            type="radio"
-            aria-label="radio 2"
-            label={questionsRadio[0].options[3]}
-            onChange={handleChange}
-            checked={questionResponse === "3"}
-          />
-        </Form.Group>
-        <Button variant="primary" type="submit" >
-          Submit
-        </Button>
-      </Form>
+    //     <Form.Check
+    //         value="2"
+    //         type="radio"
+    //         aria-label="radio 2"
+    //         label={questionsRadio[0].options[2]}
+    //         onChange={handleChange}
+    //         checked={questionResponse === "2"}
+    //       />
+    //       <Form.Check
+    //         value="3"
+    //         type="radio"
+    //         aria-label="radio 2"
+    //         label={questionsRadio[0].options[3]}
+    //         onChange={handleChange}
+    //         checked={questionResponse === "3"}
+    //       />
+    //     </Form.Group>
+    //     <Button variant="primary" type="submit" >
+    //       Submit
+    //     </Button>
+    //   </Form>
         
        
-        </Col>
-      </Row>
-    </Container>;
+    //     </Col>
+    //   </Row>
+    // </Container>;
 
  
   }
