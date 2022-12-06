@@ -146,6 +146,7 @@ export default function App() {
     setState({ ...state, creatingTransaction: false });
   }
 
+  
   // -------------------------------------------------------
   // Refresh the current state
 
@@ -160,9 +161,9 @@ export default function App() {
 
   // -------------------------------------------------------
   // Other Methods
-  const [item, setItem] = useState({ kindOfStand: "", another: "another" });
+  const [item, setItem] = useState({ quizOption: "", another: "another" });
 
-  const { kindOfStand: questionResponse } = item;
+  const { quizOption: questionResponse } = item;
 
 
   const handleChange = e => {
@@ -171,13 +172,19 @@ export default function App() {
 
     setItem(prevState => ({
       ...prevState,
-      kindOfStand: e.target.value
+      quizOption: e.target.value
     }));
   };
 
-  const handleSubmit = e => {
+  const  handleSubmit = async (e) => {
     e.preventDefault();
     alert(`${questionResponse}`);
+    let formID = e.target.id;
+    let questionNumber = formID.split('-')[1];
+    let response = parseInt(questionResponse)+1;
+    console.log(`${response} was the response to ${questionNumber}`);
+    await onSendTransaction(response,questionNumber);
+
     // let w = state.answerTree!.getWitness(BigInt(0));
     // let witness = new MyMerkleWitness(w);
     // onAnswerTransaction(Field(4), witness);
@@ -194,7 +201,7 @@ export default function App() {
     hasWallet = <div> Could not find a wallet. Install Auro wallet here: { auroLinkElem }</div> 
   }
 
-  let setupText = state.hasBeenSetup ? 'SnarkyJS Ready' : 'Setting up SnarkyJS...';
+  let setupText = state.hasBeenSetup ? '' : 'Loading App...';
   // let setup = <div> { setupText } { hasWallet }</div>
   let setup = <Container className="text-center"> { setupText } { hasWallet }</Container>
   let logoContent = 
@@ -255,8 +262,8 @@ export default function App() {
         ))} */}
         </InputGroup>
           </Form>
-          <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="kindOfStand">
+          <Form id="form-0" onSubmit={handleSubmit}>
+          <Form.Group controlId="quizOption">
             <Form.Check
               value="0"
               type="radio"
@@ -310,7 +317,7 @@ export default function App() {
    { logoContent }
    { setup }
    { accountDoesNotExist }
-   { mainContent }
+   {/* { mainContent } */}
    { quizContent }
   </div>
 }
