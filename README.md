@@ -8,7 +8,7 @@ The user has to answer quizzes which are verified by a smart contract.
 At the end of each module, the users are expected to deploy a smart contract that demonstrates the concepts that they have learnt. 
 CodeOnChain's mina smart contract tests their smart contract by interacting with methods to see if the desired outcome is achieved and if possible, also verifies key lines of code. 
 
-### How to Run
+### How to Run 
 - Make sure you have npm installed and run the following commands within the project folder. 
 `tokenClaimsUI` branch
 #### Running from Terminal
@@ -21,6 +21,24 @@ CodeOnChain's mina smart contract tests their smart contract by interacting with
 
 ##### Running on Berkeley (Only Quiz Feature works)
 `npm run build && node build/src/main.js`
+
+
+#### Running from Front end (local mina blockchain)
+`cd 04-zkapp-browser-ui`
+`cd contracts`
+`npm install` (if running for the first time)
+`npm run build`
+`cd ../ui/`
+`npm install` (if running for the first time)
+`npm run dev`
+
+
+##### Running on Local Mina Node (All features)
+`npm run build && node build/src/main.js`
+
+##### Running on Berkeley (Only Quiz Feature works)
+`npm run build && node build/src/main.js`
+
 
 ### How to Deploy
 
