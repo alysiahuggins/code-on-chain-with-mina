@@ -1,15 +1,16 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   reactStrictMode: false,
   swcMinify: true,
 
-  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js'],
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
-      snarkyjs: require('path').resolve('node_modules/snarkyjs'),
+      snarkyjs: require('path').resolve('./node_modules/snarkyjs'),
     }
     config.optimization.minimizer = [];
+    config.experiments.topLevelAwait = true;
     return config;
   },
   // To enable SnarkyJS for the web, we must set the COOP and COEP headers.
@@ -31,11 +32,12 @@ const nextConfig = {
       },
     ];
   },
+  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js'],
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/04-zkapp-browser-ui' : undefined, // update if your repo name changes for 'npm run deploy' to work successfully
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/04-zkapp-browser-ui/' : undefined, // update if your repo name changes for 'npm run deploy' to work successfully
+  basePath: process.env.NODE_ENV === 'production' ? '/zkApp-examples' : undefined,
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/zkApp-examples/' : undefined,
 };
 
 module.exports = nextConfig

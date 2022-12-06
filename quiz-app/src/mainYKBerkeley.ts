@@ -165,6 +165,7 @@ export const deploy = async (
 
   console.log('Compiling smart contract...');
   let { verificationKey } = await YKProof.compile();
+  console.log(`zk app verification key ${verificationKey.hash}`);
  
   const zkAppPublicKey = zkAppPrivateKey.toPublicKey();
   let zkapp = new YKProof(zkAppPublicKey);

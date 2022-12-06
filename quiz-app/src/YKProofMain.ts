@@ -178,7 +178,9 @@ import {
     console.log('Compiling ykProofApp..');
   
     if (doProofs) {
-      await YKProof.compile();
+      let verificationKey = await YKProof.compile();
+      console.log('verification key')
+      console.log(verificationKey.verificationKey.hash);
     }
   
     
@@ -215,85 +217,6 @@ import {
     console.log(ykProofApp.quizAnswerCommittment.get());
 
 
-  
-//     console.log('Compiling ClaimAccountApp..');
-  
-//     if (doProofs) {
-//       await ClaimAccountV2.compile();
-//     }
-  
-    
-//     console.log('Deploying ClaimAccountApp..');
-    
-//     let mytx = await Mina.transaction(claimAccountFeePayer, () => {
-//       AccountUpdate.fundNewAccount(claimAccountFeePayer, { initialBalance });
-//       claimAccountApp.deploy({  zkappKey: claimAccountKey  });
-//       // claimAccountApp.sign(claimAccountKey);
-//     });
-//     // await mytx.prove();
-  
-//     await mytx.send();
-  
-//     console.log('account deployed');
-//     console.log('account init');
-  
-    
-//     let txn = await Mina.transaction(claimAccountFeePayer, () => {
-//       claimAccountApp.init();
-//       claimAccountApp.sign(claimAccountKey);
-  
-//   });
-//   console.log(`Proving blockchain transaction\n`)
-//   if (doProofs) {
-//         await txn.prove();
-//       }
-//   console.log(`Sending blockchain transaction\n`)
-//   await txn.send();
-//   console.log('Account init');
-  
-//     console.log('Compiling QuizApp..');
-  
-//     if (doProofs) {
-//       await QuizV2.compile();
-//     }
-//     console.log('Deploying QuizApp..');
-    
-//     let tx = await Mina.transaction(feePayer, () => {
-//       AccountUpdate.fundNewAccount(feePayer, { initialBalance });
-//       // quizApp.setCommittment(initialClaimTreeCommittment);
-//       // quizApp.init();
-//       quizApp.deploy({ zkappKey });
-//     });
-  
-//     await tx.send();
-//     console.log('quizapp deployed')
-//     console.log(quizApp.commitment.get());
-//     console.log(initialCommitment);
-  
-    // quizApp.setCommittment(initialClaimTreeCommittment);
-    // console.log(quizApp.commitment.get());
-    // console.log(initialClaimTreeCommittment);
-  
-//     console.log('compile (TokenContract)');
-//     await QuizToken.compile();
-    
-    
-//     console.log('deploy tokenZkApp');
-//    let tx = await Local.transaction(tokenFeePayer, () => {
-//       AccountUpdate.fundNewAccount(tokenFeePayer, { initialBalance });
-//       tokenZkApp.deploy({ zkappKey: tokenZkAppKey });
-//     });
-//     await tx.send();
-    
-  
-   
-   
-  
-    
-  
-  
-    // console.log('compile (UserAccount)');
-    // await UserAccount.compile();
   
     console.log('deploy userAccount');
     let tx = await Local.transaction(feePayer, () => {

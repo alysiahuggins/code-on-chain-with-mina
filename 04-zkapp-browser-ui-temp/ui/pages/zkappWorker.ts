@@ -42,11 +42,14 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
       Mina.setActiveInstance(Berkeley);
     },
     loadContract: async (args: {}) => {
-      const { YKProof } = await import('../../contracts/build/src/YKProof.js');
+      // const { YKProof } = await import('../../contracts/build/src/YKProof.js');
+      const { YKProof } = await import('../../../quiz-app-ui/contracts/build/src/YKProof.js');
       state.YKProof = YKProof;
     },
     compileContract: async (args: {}) => {
-      await state.YKProof!.compile();
+      const verificationkey = await state.YKProof!.compile();
+      console.log('verificationkey')
+      console.log(verificationkey.verificationKey.hash);
     },
     loadContract2: async (args: {}) => {
       const { Add } = await import('../../contracts/build/src/Add.js');
@@ -68,7 +71,7 @@ import { Account, Answer, ClaimAccountMerkleWitness, MyMerkleWitness } from '../
       state.zkapp2 = new state.Add!(publicKey);
     },
     getNum: async (args: {}) => {
-      const currentNum = await state.zkapp!.quizAnswerCommittment.get();
+      const currentNum = await state.zkapp!.commitment.get();
       return JSON.stringify(currentNum.toJSON());
     },
     getNum2: async (args: {}) => {
