@@ -1,7 +1,7 @@
 import '../styles/globals.css'
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
-import { Container, Row, Col, Button, Card, Form, Image, InputGroup } from 'react-bootstrap'
+import { Container, Row, Col, Button, Card, Form, Image, InputGroup, ListGroup } from 'react-bootstrap'
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/css/bootstrap.css';
 
@@ -143,6 +143,7 @@ export default function App() {
         console.log(
           'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
         );
+        txns.push('https://berkeley.minaexplorer.com/transaction/' + hash);
         setState({ ...state, creatingTransaction: false });
 
         return true;
@@ -181,7 +182,7 @@ export default function App() {
   const [item, setItem] = useState({ quizOption: "", another: "another", index:0 });
 
   const { quizOption: questionResponse } = item;
-
+  const [txns, setTxns] = useState<string[]>([]); 
 
   const handleChange = e => {
     e.persist();
@@ -204,8 +205,11 @@ export default function App() {
     let response = parseInt(questionResponse)+1;
     console.log(`${response} was the response to ${questionNumber}`);
     let result = false;
+    
     try{
+      
       result = await onSendTransaction(response,questionNumber);
+      
       console.log(result)
       if (index<answers.length-1 && result) {
         console.log("set item")
@@ -271,7 +275,7 @@ export default function App() {
     </Container>
   }
 
-  let mainContent, quizContent;
+  let mainContent, quizContent, transactionContent;
   if (state.hasBeenSetup && state.accountExists) {
     mainContent = 
     // <div>
@@ -311,7 +315,7 @@ export default function App() {
         ))} */}
         </InputGroup>
           </Form>
-          <Form id="form-0" onSubmit={handleSubmit}>
+          <Form id={`form-${index}`} onSubmit={handleSubmit}>
           <Form.Group controlId="quizOption">
             <Form.Check
               value="0"
@@ -347,7 +351,7 @@ export default function App() {
               checked={questionResponse === "3"}
             />
           </Form.Group>
-          <Button variant="primary" type="submit" >
+          <Button variant="primary" type="submit" disabled={state.creatingTransaction?true:false}>
             Submit
           </Button>
         </Form>
@@ -356,11 +360,28 @@ export default function App() {
           </Col>
         </Row>
       </Container>;
+
+      transactionContent = 
+      
+      <Container fluid="sm" className="text-center">
+        <Row></Row>
+      <Row>
+        <Col>
+          <ListGroup>
+            {txns.map((type) => (
+              <ListGroup.Item id={`default-${type}`}>
+                <a href={type} target="_blank">Transaction Sent</a>
+              </ListGroup.Item>
+          ))}
+          </ListGroup>
+        </Col>
+      </Row>
+      </Container>;
   }
 
   
 
-   
+
 
   return <div>
    { logoContent }
@@ -368,5 +389,6 @@ export default function App() {
    { accountDoesNotExist }
    {/* { mainContent } */}
    { quizContent }
+   { transactionContent }
   </div>
 }
