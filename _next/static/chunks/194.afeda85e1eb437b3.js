@@ -920,7 +920,7 @@ process.umask = function() { return 0; };
 /******/ 	
 /******/ 	/* webpack/runtime/publicPath */
 /******/ 	!function() {
-/******/ 		__webpack_require__.p = "/zkApp-examples//_next/";
+/******/ 		__webpack_require__.p = "/code-on-chain-with-mina//_next/";
 /******/ 	}();
 /******/ 	
 /******/ 	/* webpack/runtime/importScripts chunk loading */
