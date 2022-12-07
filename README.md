@@ -25,6 +25,26 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 ##### Running on Berkeley (Only Quiz Feature works)
 `npm run build && node build/src/main.js`
 
+
+#### Running with Front end 
+
+(only the quiz app features)
+You can visit it on github pages https://alysiahuggins.github.io/code-on-chain-with-mina/
+
+`cd 04-zkapp-browser-ui`
+
+`cd contracts`
+
+`npm install` (if running for the first time) 
+
+`npm run build`
+
+`cd ../ui/`
+
+`npm install` (if running for the first time)
+
+`npm run dev`
+
 ### How to Deploy
 
 ##### Running with Consolidated Contract
@@ -46,8 +66,9 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 
 ##### Features implemented in frontend
 ###### Todo
-- quiz
 - token minting
+- user accounts
+- token claims
 
 ### Proposed Curriculum
 - Mina Theory

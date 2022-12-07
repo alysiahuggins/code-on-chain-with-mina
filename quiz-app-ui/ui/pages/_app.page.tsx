@@ -1,4 +1,4 @@
-import '../styles/globals.css'
+import '/styles/globals.css'
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
 import { Container, Row, Col, Button, Card, Form, Image, InputGroup, ListGroup } from 'react-bootstrap'
@@ -261,7 +261,7 @@ export default function App() {
   <Container fluid="sm" className="text-center">
     <Row>
       <Col>
-      <Card.Img src='/images/ykp-logo.png'   alt="logo"/>
+      <Card.Img src='./images/ykp-logo.png'   alt="logo"/>
       </Col>
     </Row>
   </Container>

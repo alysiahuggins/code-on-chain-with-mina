@@ -36,8 +36,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/zkApp-examples' : undefined,
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/zkApp-examples/' : undefined,
+  basePath: process.env.NODE_ENV === 'production' ? '/code-on-chain-with-mina' : undefined,
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/code-on-chain-with-mina/' : undefined,
 };
 
 module.exports = nextConfig
