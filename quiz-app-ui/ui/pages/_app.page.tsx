@@ -184,7 +184,7 @@ export default function App() {
   const { quizOption: questionResponse } = item;
   const [txns, setTxns] = useState<string[]>([]); 
 
-  const handleChange = e => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.persist();
     console.log(e.target.value);
 
@@ -195,13 +195,13 @@ export default function App() {
     }));
   };
 
-  const  handleSubmit = async (e) => {
+  const  handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     // e.persist();
 
     // alert(`${questionResponse}`);
     let formID = e.target.id;
-    let questionNumber = formID.split('-')[1];
+    let questionNumber = parseInt(formID.split('-')[1]);
     let response = parseInt(questionResponse)+1;
     console.log(`${response} was the response to ${questionNumber}`);
     let result = false;
@@ -369,8 +369,8 @@ export default function App() {
         <Col>
           <ListGroup>
             {txns.map((type) => (
-              <ListGroup.Item id={`default-${type}`}>
-                <a href={type} target="_blank">Transaction Sent</a>
+              <ListGroup.Item key={type} id={`default-${type}`}>
+                <a href={type} target="_blank"  rel="noreferrer">Transaction Sent</a>
               </ListGroup.Item>
           ))}
           </ListGroup>
