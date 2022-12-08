@@ -1,8 +1,6 @@
 # Code On Chain with Mina
 Built as part of the Zk App Builders Program. 
 
-I have changed the main branch to 'tokenClaimsUI'
-
 ## CodeOnChain
 Learn mina blockchain development by building tiny apps that teach you key concepts. 
 The user has to answer quizzes which are verified by a smart contract. 
