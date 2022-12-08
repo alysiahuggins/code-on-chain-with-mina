@@ -30,7 +30,7 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 (only the quiz app features)
 You can visit it on github pages https://alysiahuggins.github.io/code-on-chain-with-mina/
 
-`cd 04-zkapp-browser-ui`
+`cd quiz-app-ui`
 
 `cd contracts`
 
