@@ -1,9 +1,11 @@
 import '/styles/globals.css'
 import { useEffect, useState } from "react";
 import './reactCOIServiceWorker';
-import { Container, Row, Col, Button, Card, Form, Image, InputGroup, ListGroup } from 'react-bootstrap'
+import { Container, Row, Col, Button, Card, Form, Spinner, InputGroup, ListGroup, Alert } from 'react-bootstrap'
 // import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/css/bootstrap.css';
+
+import ConfettiExplosion from 'react-confetti-explosion';
 
 import ZkappWorkerClient from './zkappWorkerClient';
 
@@ -176,6 +178,13 @@ export default function App() {
 
     setState({ ...state, currentNum });
   }
+   // -------------------------------------------------------
+  // Show the quiz screen
+
+  const onRestartQuiz = async () => {
+    setQuizContentClass("d-block");
+    setClaimViewClass("d-none");
+  }
 
   // -------------------------------------------------------
   // Other Methods
@@ -183,6 +192,10 @@ export default function App() {
 
   const { quizOption: questionResponse } = item;
   const [txns, setTxns] = useState<string[]>([]); 
+  const [claimViewClass, setClaimViewClass] = useState("d-none");
+  const [quizContentClass, setQuizContentClass] = useState("d-block"); 
+
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.persist();
@@ -209,7 +222,6 @@ export default function App() {
     try{
       
       result = await onSendTransaction(response,questionNumber);
-      
       console.log(result)
       if (index<answers.length-1 && result) {
         console.log("set item")
@@ -231,6 +243,8 @@ export default function App() {
           ...prevState,
           index: 0
         }));
+        setClaimViewClass("d-block");
+        setQuizContentClass("d-none");
       }
       else if(result==false){
         alert("Incorrect")
@@ -255,8 +269,12 @@ export default function App() {
   }
 
   let setupText = state.hasBeenSetup ? '' : 'Loading App...';
+  let setupAnim = state.hasBeenSetup ? '' :
+    <Spinner animation="grow" role="status">
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>
   // let setup = <div> { setupText } { hasWallet }</div>
-  let setup = <Container className="text-center"> { setupText } { hasWallet }</Container>
+  let setup = <Container className="text-center"> { setupAnim } { hasWallet }</Container>
   let logoContent = 
   <Container fluid="sm" className="text-center">
     <Row>
@@ -265,6 +283,30 @@ export default function App() {
       </Col>
     </Row>
   </Container>
+
+let claimContent = 
+<div className={claimViewClass}>
+ 
+  <Container fluid="sm" className="text-center">
+    <Row  >
+      <Col >
+      {/* <div className="d-grid gap-2"> */}
+      <ConfettiExplosion  />
+      <br></br>
+      <Alert  variant="info">
+        Congratulations, YOU WON!
+      </Alert>
+      <Button  onClick={onRefreshCurrentNum} variant="success" size="lg"> Claim Reward </Button>
+      <br></br>
+      <br></br>
+      
+      <Button  onClick={onRestartQuiz} variant="light" size="lg"> Restart Quiz </Button>
+      
+      {/* </div> */}
+      </Col>
+    </Row>
+  </Container>
+  </div>
 
   let accountDoesNotExist;
   if (state.hasBeenSetup && !state.accountExists) {
@@ -297,7 +339,7 @@ export default function App() {
     </Container>;
 
     quizContent = 
-      <Container fluid="sm" className="text-center">
+      <Container fluid="sm" className={`text-center ${quizContentClass}`} >
         <Row>
           <Col>
             <Form>
@@ -389,6 +431,8 @@ export default function App() {
    { accountDoesNotExist }
    {/* { mainContent } */}
    { quizContent }
+   {claimContent}
+
    { transactionContent }
   </div>
 }

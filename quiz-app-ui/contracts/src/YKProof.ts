@@ -147,8 +147,7 @@ export class YKProof extends SmartContract {
       committment = answerTree.getRoot();
       return committment;
     }
-    
-  
+
     @method validateQuestionResponse(response: Field, path: MyMerkleWitness){
       
       let quizAnswerCommittment = this.quizAnswerCommittment.get();
@@ -157,6 +156,7 @@ export class YKProof extends SmartContract {
       // we check that the response is the same as the hash of the answer at that path
       path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(quizAnswerCommittment);
     }
+
 
     // QUiz TOken
     @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {

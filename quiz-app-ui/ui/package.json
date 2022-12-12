@@ -12,12 +12,14 @@
     "deploy": "next build && next export && touch out/.nojekyll && git add -f out/ && git commit -m \"Deploy gh-pages\" && cd ../../ && git subtree push --prefix quiz-app-ui/ui/out origin gh-pages"
   },
   "dependencies": {
+    "bootstrap": "^5.2.3",
     "coi-serviceworker": "^0.1.6",
     "next": "13.0.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
     "react-bootstrap": "^2.6.0",
-    "bootstrap": "^5.2.3",
+    "react-confetti-explosion": "^1.5.1",
+    "react-dom": "18.2.0",
+    "react-native-confetti": "^0.1.0",
     "snarkyjs": "^0.7.3"
   },
   "devDependencies": {
