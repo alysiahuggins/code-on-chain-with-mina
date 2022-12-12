@@ -77,16 +77,6 @@ export class YKProof extends SmartContract {
   @state(Field) quizAnswerCommittment = State<Field>();
 
 
-  // deploy(args: DeployArgs) {
-  //   super.deploy(args);
-  //   this.setPermissions({
-  //     ...Permissions.default(),
-  //     editState: Permissions.proofOrSignature(),
-  //   });
-  //   this.balance.addInPlace(UInt64.from(initialBalance));
-  //   this.commitment.set(initialClaimTreeCommittment);
-  // }
-
   deploy(args: DeployArgs){
       super.deploy(args);
       this.setPermissions({
