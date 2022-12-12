@@ -32,6 +32,7 @@ export default function App() {
     publicKey: null as null | PublicKey,
     zkappPublicKey: null as null | PublicKey,
     creatingTransaction: false,
+    claimRewardsDisabled: true,
   });
 
   // -------------------------------------------------------
@@ -121,6 +122,7 @@ export default function App() {
   const onSendTransaction = async (response:number, questionPosition:number) => {
     try{
       setState({ ...state, creatingTransaction: true });
+      setLoadTxnClass('d-block');
       console.log('sending a transaction...');
 
       await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
@@ -147,23 +149,100 @@ export default function App() {
         );
         txns.push('https://berkeley.minaexplorer.com/transaction/' + hash);
         setState({ ...state, creatingTransaction: false });
+        setLoadTxnClass('d-none');
+        setClaimViewClass('d-none');
 
         return true;
 
       }else{
         setState({ ...state, creatingTransaction: false });
+        setLoadTxnClass('d-none');
+        setClaimViewClass('d-none');
+
         return false;
       }
       
       
     }catch(e){
       setState({ ...state, creatingTransaction: false });
+      setClaimViewClass('d-none');
+      setLoadTxnClass('d-none');
 
       console.log("error caught")
       console.log(e)
       return false
     }
+
     
+  }
+
+  // -------------------------------------------------------
+  // Send a transaction - Claim Rewards
+
+  const onClaimRewardsTransaction = async (publicKeyBase58:string) => {
+    try{
+
+      setShowConfetti(false);
+
+      console.log('sending a transaction...');
+      setState({ ...state, creatingTransaction: true });
+      setLoadTxnClass('d-block');
+
+      // let tokenBalance = await state.zkappWorkerClient!.getTokenBalance(publicKeyBase58);
+      // console.log("tokenBalance");
+      // console.log(tokenBalance);
+      // if(tokenBalance==-1){
+      //   console.log('You need to do a tokendeploy to that address first');
+      // }
+      // await state.zkappWorkerClient!.fetchAccount({ publicKey: state.publicKey! });
+      let txCreated = await state.zkappWorkerClient!.createClaimRewardsTransaction(publicKeyBase58);
+
+      if(txCreated){
+        console.log('creating proof...');
+        await state.zkappWorkerClient!.proveUpdateTransaction();
+
+        console.log('getting Transaction JSON...');
+        const transactionJSON = await state.zkappWorkerClient!.getTransactionJSON()
+        console.log(transactionJSON);
+        console.log('requesting send transaction...');
+        const { hash } = await (window as any).mina.sendTransaction({
+          transaction: transactionJSON,
+          feePayer: {
+            fee: transactionFee,
+            memo: '',
+          },
+        });
+
+        console.log(
+          'See transaction at https://berkeley.minaexplorer.com/transaction/' + hash
+        );
+        txns.push('https://berkeley.minaexplorer.com/transaction/' + hash);
+        setState({ ...state, creatingTransaction: false });
+        setLoadTxnClass('d-none');
+        setClaimViewClass('d-none');
+
+        return true;
+
+      }else{
+        setState({ ...state, creatingTransaction: false });
+        setLoadTxnClass('d-none');
+
+      }
+      
+      
+    }catch(e){
+      setState({ ...state, creatingTransaction: false });
+      setLoadTxnClass('d-none');
+
+      console.log("error caught")
+      console.log(e)
+      alert(`This error occurred when trying to create the transaction: ${e.message}`)
+      return false
+    }
+    
+    alert("An error occurred when trying to create the transcaction");
+    return false;
+
   }
 
   
@@ -182,6 +261,8 @@ export default function App() {
   // Show the quiz screen
 
   const onRestartQuiz = async () => {
+    setShowConfetti(false);
+
     setQuizContentClass("d-block");
     setClaimViewClass("d-none");
   }
@@ -194,6 +275,10 @@ export default function App() {
   const [txns, setTxns] = useState<string[]>([]); 
   const [claimViewClass, setClaimViewClass] = useState("d-none");
   const [quizContentClass, setQuizContentClass] = useState("d-block"); 
+  const [loadTxnClass, setLoadTxnClass] = useState("d-none"); 
+  const [showConfetti, setShowConfetti] = useState(false); 
+
+
 
 
 
@@ -209,7 +294,9 @@ export default function App() {
   };
 
   const  handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
+
     e.preventDefault();
+
     // e.persist();
 
     // alert(`${questionResponse}`);
@@ -237,7 +324,6 @@ export default function App() {
   
       }
       else if(index>=answers.length-1 && result) {
-        alert("You won!");
         index = 0;
         setItem(prevState => ({
           ...prevState,
@@ -245,6 +331,10 @@ export default function App() {
         }));
         setClaimViewClass("d-block");
         setQuizContentClass("d-none");
+        setShowConfetti(true);
+        //wait 3 seconds so that the confetti can be shown
+        await new Promise( resolve => setTimeout(resolve, 3000) )
+        setShowConfetti(false);
       }
       else if(result==false){
         alert("Incorrect")
@@ -269,10 +359,19 @@ export default function App() {
   }
 
   let setupText = state.hasBeenSetup ? '' : 'Loading App...';
+
   let setupAnim = state.hasBeenSetup ? '' :
     <Spinner animation="grow" role="status">
       <span className="visually-hidden">Loading...</span>
     </Spinner>
+
+  let loadingSpinner = 
+  <Container  className="text-center">
+    <Spinner animation="border" role="status" className={`text-center ${loadTxnClass}`}>
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>
+  </Container>
+
   // let setup = <div> { setupText } { hasWallet }</div>
   let setup = <Container className="text-center"> { setupAnim } { hasWallet }</Container>
   let logoContent = 
@@ -283,20 +382,21 @@ export default function App() {
       </Col>
     </Row>
   </Container>
-
+let confettiContent = showConfetti?<Container fluid="sm" className="text-center"><ConfettiExplosion  /></Container>:"";
 let claimContent = 
 <div className={claimViewClass}>
+ 
  
   <Container fluid="sm" className="text-center">
     <Row  >
       <Col >
       {/* <div className="d-grid gap-2"> */}
-      <ConfettiExplosion  />
       <br></br>
       <Alert  variant="info">
         Congratulations, YOU WON!
       </Alert>
-      <Button  onClick={onRefreshCurrentNum} variant="success" size="lg"> Claim Reward </Button>
+      <Button  onClick={() => onClaimRewardsTransaction(state.publicKey!.toBase58())} variant="success" size="lg" disabled={state.claimRewardsDisabled || state.creatingTransaction}> Claim Reward </Button>
+      {/* <Button  onClick={() => onClaimRewardsTransaction('B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz')} variant="success" size="lg" disabled={state.creatingTransaction}> Claim Reward </Button> */}
       <br></br>
       <br></br>
       
@@ -325,7 +425,6 @@ let claimContent =
     //   <div> Current Number in zkApp: { state.currentNum!.toString() } </div>
     //   <button onClick={onRefreshCurrentNum}> Get Latest State </button>
     // </div>
-
     <Container fluid="sm" className="text-center">
     <Row>
       <Col></Col>
@@ -406,18 +505,18 @@ let claimContent =
       transactionContent = 
       
       <Container fluid="sm" className="text-center">
-        <Row></Row>
-      <Row>
-        <Col>
-          <ListGroup>
-            {txns.map((type) => (
-              <ListGroup.Item key={type} id={`default-${type}`}>
-                <a href={type} target="_blank"  rel="noreferrer">Transaction Sent</a>
-              </ListGroup.Item>
-          ))}
-          </ListGroup>
-        </Col>
-      </Row>
+        <br></br>
+        <Row>
+          <Col>
+            <ListGroup>
+              {txns.map((type) => (
+                <ListGroup.Item key={type} id={`default-${type}`}>
+                  <a href={type} target="_blank"  rel="noreferrer">Transaction Sent</a>
+                </ListGroup.Item>
+            ))}
+            </ListGroup>
+          </Col>
+        </Row>
       </Container>;
   }
 
@@ -431,7 +530,9 @@ let claimContent =
    { accountDoesNotExist }
    {/* { mainContent } */}
    { quizContent }
+   {confettiContent}
    {claimContent}
+   {loadingSpinner}
 
    { transactionContent }
   </div>

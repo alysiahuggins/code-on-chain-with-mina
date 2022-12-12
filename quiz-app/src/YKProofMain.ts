@@ -19,7 +19,8 @@ import {
     shutdown,
     Experimental,
     Ledger,
-    CircuitString
+    CircuitString,
+    PublicKey
   } from 'snarkyjs';
   import { QuizToken } from './contracts/QuizToken.js';
   import { QuizV2 } from './contracts/Quiz.js';
@@ -154,7 +155,6 @@ import {
   
   
   let zkappAddress = zkappKey.toPublicKey();
-  
   let winnerKeyAddress = winnerKey.toPublicKey();
   let claimAccountAddress = claimAccountKey.toPublicKey();
   let ykProofAccountAddress = ykProofAccountKey.toPublicKey();

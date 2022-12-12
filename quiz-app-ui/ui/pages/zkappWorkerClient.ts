@@ -54,6 +54,13 @@ export default class ZkappWorkerClient {
     return result;
   }
 
+  async createClaimRewardsTransaction(publicKeyBase58: string) {
+    return await this._call('createClaimRewardsTransaction', {publicKeyBase58: publicKeyBase58});
+  }
+
+  getTokenBalance(publicKeyBase58: string) {
+    return this._call('getTokenBalance', {publicKey: publicKeyBase58});
+  }
   // ---------------------------------------------------------------------------------------
 
   worker: Worker;

@@ -10,7 +10,10 @@ import {
   CircuitValue,
   prop,
   Poseidon,
-  MerkleWitness
+  MerkleWitness,
+  Experimental,
+  AccountUpdate,
+  UInt64
 } from 'snarkyjs'
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
@@ -61,6 +64,8 @@ const state = {
   transaction: null as null | Transaction,
   YKProof: null as null | typeof YKProof,
   answerTree: null as null | MerkleTree,
+  tokenId: null as null | Field,
+  zkappPublicKey: null as null | PublicKey
 }
 
 // ---------------------------------------------------------------------------------------
@@ -100,6 +105,8 @@ const functions = {
   initZkappInstance: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     state.zkapp = new state.YKProof!(publicKey);
+    state.tokenId = state.zkapp!.tokenId;
+    state.zkappPublicKey = publicKey;
   },
   getNum: async (args: {}) => {
     const currentNum = await state.zkapp!.commitment.get();
@@ -121,6 +128,7 @@ const functions = {
       return false;
     }
   },
+  
   proveUpdateTransaction: async (args: {}) => {
     try{
       await state.transaction!.prove();
@@ -134,6 +142,41 @@ const functions = {
   getTransactionJSON: async (args: {}) => {
     return state.transaction!.toJSON();
   },
+  createClaimRewardsTransaction: async (args: { publicKeyBase58:string }) => {
+    try{
+      // const transaction = await Mina.transaction(() => {
+      //     state.zkapp!.mint(PublicKey.fromBase58(args.publicKeyBase58));
+      //   }
+      // );
+
+      let approveSendingCallback = Experimental.Callback.create(
+        state.zkapp!,
+        'approveSend',
+        []
+      );
+      
+      const transaction = await Mina.transaction(() => {
+        state.zkapp!.sendTokens(state.zkappPublicKey!, 
+          PublicKey.fromBase58(args.publicKeyBase58),
+          approveSendingCallback);
+      });
+      state.transaction = transaction;
+      return true;
+    }catch(e){ 
+      console.log("error from create claim tx")
+      console.log(e)
+      return false;
+    }
+  },
+  
+  getTokenBalance: (args: { publicKeyBase58: string }) => {
+    try{
+      return Mina.getBalance(PublicKey.fromBase58(args.publicKeyBase58), state.tokenId!).value.toBigInt()
+    }catch(e){
+      return -1;
+    }
+    
+  }
 };
 
 // ---------------------------------------------------------------------------------------
