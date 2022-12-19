@@ -520,8 +520,6 @@ let claimContent =
       </Container>;
   }
 
-  
-
 
 
   return <div>

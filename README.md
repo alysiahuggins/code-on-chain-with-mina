@@ -22,7 +22,7 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 `npm run build && node build/src/main.js`
 
 ##### Running on Berkeley (Only Quiz Feature works)
-`npm run build && node build/src/main.js`
+`npm run build && node build/src/mainYKBerkeley.js`
 
 
 #### Running with Front end 
