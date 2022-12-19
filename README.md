@@ -11,8 +11,6 @@ Current Deployed Smart Contract:
 https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
 
 ### How to Run
-- Make sure you have npm installed and run the following commands within the project folder. 
-`tokenClaimsUI` branch
 #### Running from Terminal
 `cd quiz-app`
 
