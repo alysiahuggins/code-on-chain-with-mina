@@ -1,3 +1,4 @@
+![Screenshot](YKProof_Website_Screenshot.png)
 # Code On Chain with Mina
 Built as part of the Zk App Builders Program. 
 
@@ -27,6 +28,8 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 
 (only the quiz app features)
 You can visit it on github pages https://alysiahuggins.github.io/code-on-chain-with-mina/
+
+OR via the Terminal
 
 `cd quiz-app-ui`
 
