@@ -1,13 +1,10 @@
-import { AppRegisteredEventsDocument } from '@superfluid-finance/sdk-core/dist/module/subgraph/events/events.generated';
 import {
     Field,
     Mina,
     PrivateKey,
     PublicKey,
     fetchAccount,
-    SmartContract,
   } from 'snarkyjs';
-import { ClaimAccountSC } from './main';
   
   // ========================================================
   

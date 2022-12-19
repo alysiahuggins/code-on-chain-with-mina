@@ -10,7 +10,6 @@ import {
   PublicKey,
   Field,
   fetchAccount,
-  AccountUpdate,
   CircuitString,
   MerkleTree,
   MerkleWitness,
@@ -21,7 +20,6 @@ import {
 
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
-import { AppRegisteredEventsDocument } from '@superfluid-finance/sdk-core/dist/module/subgraph/events/events.generated.js';
 // this map serves as our off-chain in-memory storage
 export class Account extends CircuitValue {
     @prop username: CircuitString;

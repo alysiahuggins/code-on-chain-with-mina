@@ -32,8 +32,6 @@ import {
   MerkleWitness,
   shutdown,
   Experimental,
-  VerificationKey,
-  Int64,
   Ledger,
   CircuitString
 } from 'snarkyjs';
@@ -47,7 +45,6 @@ import question from "./question.js";
 import {questions as questions} from "./curriculum/curriculum.js"
 
 import {answers as answers} from "./curriculum/curriculum.js"
-import { ContractFunctionVisibility } from 'hardhat/internal/hardhat-network/stack-traces/model.js';
 
 
 await isReady;
