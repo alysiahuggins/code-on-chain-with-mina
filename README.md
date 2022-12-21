@@ -2,11 +2,16 @@
 # Code On Chain with Mina
 Built as part of the Zk App Builders Program. 
 
+# Original Vision
 ## CodeOnChain
 Learn mina blockchain development by building tiny apps that teach you key concepts. 
 The user has to answer quizzes which are verified by a smart contract. 
 At the end of each module, the users are expected to deploy a smart contract that demonstrates the concepts that they have learnt. (this was not implemented in the end)
 CodeOnChain's mina smart contract tests their smart contract by interacting with methods to see if the desired outcome is achieved and if possible, also verifies key lines of code. (this was not implemented in the end)
+
+# Actual Product
+## YK Proofs
+A quiz web app that lets users globally prove their knowledge without revealing their knowledge by using ZK Proofs on the Mina Blockchain and they can also receive tokens that represent their knowledge. Even though the quiz transactions are public, the users' answers are not leaked so that all users have a fair chance and integrity is maintained. 
 
 Current Deployed Smart Contract: 
 https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz
