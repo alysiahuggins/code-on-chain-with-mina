@@ -14,7 +14,7 @@ import {
     Permissions,
     DeployArgs,
     VerificationKey,
-  } from 'snarkyjs';
+  } from 'o1js';
   
   await isReady;
   

@@ -14,7 +14,7 @@ import {
     UInt32,
     MerkleTree,
     isReady
-  } from 'snarkyjs';
+  } from 'o1js';
 import {answers as answers} from "../curriculum/curriculum.js"
 
 await isReady;

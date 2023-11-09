@@ -460,10 +460,10 @@ console.log('Account init');
     // await tx.prove();
     await tx.send();
     console.log('getting Token balance')
-    console.log(
-      `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-      Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
-    );
+    // console.log(
+    //   `Winner's balance for tokenId: ${Ledger..getAccount(winnerKeyAddress,tokenId)}`,
+    //   Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+    // );
   }catch(e){
     console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
     console.log(e);
@@ -552,10 +552,10 @@ console.log('Account init');
         console.log('send (proof)');
         await tx.send();
         console.log('token sent getting Token balance')
-        console.log(
-        `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-        Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
-    );
+        // console.log(
+        // `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+        // Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+    // );
       }catch(e){
         console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
         console.log(e);

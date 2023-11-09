@@ -7,8 +7,9 @@ import {
     Poseidon,
     MerkleWitness,
     UInt32,
-    MerkleTree
-  } from 'snarkyjs';
+    MerkleTree,
+    Bool
+  } from 'o1js';
 
 import {questions as questions} from "../curriculum/curriculum.js"
 import {answers as answers} from "../curriculum/curriculum.js"
@@ -16,9 +17,9 @@ import {answers as answers} from "../curriculum/curriculum.js"
 export class Account extends CircuitValue {
     @prop username: CircuitString;
     @prop password: Field;
-    @prop claimed: Field;
+    @prop claimed: Bool;
   
-    constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+    constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
       super(username, password, claimed);
       this.username = username;
       this.password = Poseidon.hash(password.toFields());
@@ -29,7 +30,7 @@ export class Account extends CircuitValue {
       return Poseidon.hash(this.toFields());
     }
   
-    setClaimed(claimed: Field) {
+    setClaimed(claimed: Bool) {
       this.claimed = claimed;
     }
   }

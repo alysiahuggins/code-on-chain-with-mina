@@ -14,8 +14,9 @@ import {
   MerkleTree,
   MerkleWitness,
   UInt32,
-  Ledger
-} from 'snarkyjs';
+  Ledger,
+  Bool
+} from 'o1js';
 
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
@@ -37,7 +38,7 @@ let usernames: Array<string> = new Array<string>();
 function createClaimAccountMerkleTree(username: string, password: string){
     let committment: Field = Field(0);
   
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
   
     usernames[usernames.length] = username;
     Accounts.set(username, account);
@@ -88,7 +89,7 @@ export const deploy = async (
     let zkAppResponse = await fetchAccount({ publicKey: zkAppPublicKey });
     let isDeployed = zkAppResponse.error == null;
     // TODO add check that verification key is correct once this is available in SnarkyJS
-    let zkappVerificationKey = zkAppResponse.account!.verificationKey!.toString()
+    let zkappVerificationKey = zkAppResponse.account!.zkapp!.verificationKey!.toString()
     isDeployed = isDeployed && (zkappVerificationKey==verificationKey.data);
     console.log(zkappVerificationKey)
     console.log()
@@ -191,10 +192,10 @@ let tokenId = zkapp.token.id;
   try{
     
     console.log('getting Token balance')
-    console.log(
-      `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-      Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
-    );
+    // console.log(
+    //   `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+    //   Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
+    // );
   }catch(e){
     console.log(`Error getting token balance from ${zkAppPublicKey.toBase58()}`);
     console.log(e);
@@ -314,10 +315,10 @@ let tokenId = zkapp.token.id;
             }
 
             console.log('getting Token balance')
-            console.log(
-              `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-              Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
-            );
+            // console.log(
+            //   `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+            //   Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
+            // );
           }catch(e){
             console.log(`Error sending token to ${zkAppPublicKey.toBase58()}`);
             console.log(e);
@@ -346,7 +347,7 @@ let tokenId = zkapp.token.id;
           }
  // ----------------------------------------------------
  // create an account in zkapp
- let account1 = new Account(CircuitString.fromString("alysia"), CircuitString.fromString("minarocks"), Field(false));
+ let account1 = new Account(CircuitString.fromString("alysia"), CircuitString.fromString("minarocks"), Bool(false));
  claimAccountTree.setLeaf(BigInt(0), account1.hash())
 //  let account2 = new Account(CircuitString.fromString("zk"), CircuitString.fromString("app"), Field(false));
 //  claimAccountTree.setLeaf(BigInt(1
@@ -357,7 +358,7 @@ let tokenId = zkapp.token.id;
     let password = "app";
      w = claimAccountTree.getWitness(BigInt(numUsers));
      witness = new ClaimAccountMerkleWitness(w);
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
 
     //   await makeAndSendTransaction({
     //         feePayerPrivateKey: deployerPrivateKey,
@@ -392,7 +393,7 @@ let tokenId = zkapp.token.id;
       // search for the newly created account
         username="alysia"
         password="minarocks"
-       account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+       account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Bool(false));
        let usernameIndex = 0;
     //    let usernameIndex = usernames.findIndex((obj) => {
     //     return obj === username;

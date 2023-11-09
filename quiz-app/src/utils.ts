@@ -4,7 +4,7 @@ import {
     PrivateKey,
     PublicKey,
     fetchAccount,
-  } from 'snarkyjs';
+  } from 'o1js';
   
   // ========================================================
   
@@ -31,7 +31,7 @@ import {
       let response = await fetchAccount({ publicKey: account });
       let accountExists = response.error == null;
       if (isZkAppAccount) {
-        accountExists = accountExists && response.account!.appState != null;
+        accountExists = accountExists && response.account!.zkapp!.appState != null;
       }
       if (!accountExists) {
         await eachTimeNotExist();
@@ -130,8 +130,8 @@ import {
   ) => {
     console.warn('warning: using a `utils.ts` written before `isProved` made available. Check https://docs.minaprotocol.com/zkapps/tutorials/deploying-to-a-live-network for updates');
     // TODO when available in the future, use isProved.
-    const allZeros = zkAppAccount.appState!.every((f: Field) =>
-      f.equals(Field.zero).toBoolean()
+    const allZeros = zkAppAccount.zkapp?.appState?.every((f: Field) =>
+      f.equals(Field(0)).toBoolean()
     );
     const needsInitialization = allZeros;
     return needsInitialization;

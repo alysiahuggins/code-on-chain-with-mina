@@ -20,8 +20,9 @@ import {
     Experimental,
     Ledger,
     CircuitString,
-    PublicKey
-  } from 'snarkyjs';
+    PublicKey,
+    Bool
+  } from 'o1js';
   import { QuizToken } from './contracts/QuizToken.js';
   import { QuizV2 } from './contracts/Quiz.js';
   import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
@@ -68,9 +69,9 @@ import { ButtonGroup } from 'react-bootstrap';
   export class Account extends CircuitValue {
     @prop username: CircuitString;
     @prop password: Field;
-    @prop claimed: Field;
+    @prop claimed: Bool;
   
-    constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+    constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
       super(username, password, claimed);
       this.username = username;
       this.password = Poseidon.hash(password.toFields());
@@ -81,7 +82,7 @@ import { ButtonGroup } from 'react-bootstrap';
       return Poseidon.hash(this.toFields());
     }
   
-    setClaimed(claimed: Field) {
+    setClaimed(claimed: Bool) {
       this.claimed = claimed;
     }
   }
@@ -117,7 +118,7 @@ import { ButtonGroup } from 'react-bootstrap';
   function createClaimAccountMerkleTree(username: string, password: string){
     let committment: Field = Field(0);
   
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
   
     usernames[usernames.length] = username;
     Accounts.set(username, account);
@@ -301,10 +302,10 @@ import { ButtonGroup } from 'react-bootstrap';
       // await tx.prove();
       await tx.send();
       console.log('getting Token balance')
-      console.log(
-        `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-        Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
-      );
+      // console.log(
+      //   `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+      //   Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+      // );
     }catch(e){
       console.log(`Error sending token to ${ykProofAccountAddress.toBase58()}`);
       console.log(e);
@@ -323,7 +324,7 @@ import { ButtonGroup } from 'react-bootstrap';
         let numUsers = usernames.length;
         let w = claimAccountTree.getWitness(BigInt(numUsers));
         let witness = new ClaimAccountMerkleWitness(w);
-        let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+        let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
   
           let txn = await Mina.transaction(ykProofFeePayer, () => {
             ykProofApp.createAccount(account, witness);
@@ -352,7 +353,7 @@ import { ButtonGroup } from 'react-bootstrap';
       }else{
         var username = await question(`Please enter your username?\n`)
         var password = await question(`Please enter your password\n`);
-        let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+        let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Bool(false));
         let usernameIndex = usernames.findIndex((obj) => {
             return obj === username;
           })!;
@@ -392,10 +393,10 @@ import { ButtonGroup } from 'react-bootstrap';
           console.log('send (proof)');
           await tx.send();
           console.log('token sent getting Token balance')
-          console.log(
-          `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-          Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
-      );
+      //     console.log(
+      //     `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+      //     Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+      // );
         }catch(e){
           console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
           console.log(e);
@@ -412,7 +413,7 @@ import { ButtonGroup } from 'react-bootstrap';
       }else{
         var username = await question(`Please enter your username?\n`)
         var password = await question(`Please enter your password\n`);
-        let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+        let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Bool(false));
         let usernameIndex = usernames.findIndex((obj) => {
             return obj === username;
           })!;
@@ -452,10 +453,10 @@ import { ButtonGroup } from 'react-bootstrap';
           console.log('send (proof)');
           await tx.send();
           console.log('token sent getting Token balance')
-          console.log(
-          `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-          Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
-      );
+          // console.log(
+          // `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
+          // Mina.getBalance(winnerKeyAddress, tokenId).value.toBigInt()
+      // );
         }catch(e){
           console.log(`Error sending token to ${winnerKeyAddress.toBase58()}`);
           console.log(e);

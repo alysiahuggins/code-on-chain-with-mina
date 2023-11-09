@@ -24,8 +24,9 @@
   PrivateKey,
   AccountUpdate,
   Int64,
-  VerificationKey
-} from 'snarkyjs';
+  VerificationKey,
+  Bool
+} from 'o1js';
 
 import {answers10 as answers} from "./curriculum/curriculum.js"
 
@@ -54,9 +55,9 @@ class Answer extends CircuitValue {
 class Account extends CircuitValue {
   @prop username: CircuitString;
   @prop password: Field;
-  @prop claimed: Field;
+  @prop claimed: Bool;
 
-  constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+  constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
     super(username, password, claimed);
     this.username = username;
     this.password = Poseidon.hash(password.toFields());
@@ -67,7 +68,7 @@ class Account extends CircuitValue {
     return Poseidon.hash(this.toFields());
   }
 
-  setClaimed(claimed: Field) {
+  setClaimed(claimed: Bool) {
     this.claimed = claimed;
   }
 }
@@ -133,7 +134,7 @@ export class YKProof extends SmartContract {
   createClaimAccountMerkleTree(){
     let committment: Field = Field(0);
     let username = "alysia";
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Bool(false));
   
     claimAccountTree.setLeaf(BigInt(0), account.hash());
   

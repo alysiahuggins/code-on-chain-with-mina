@@ -15,8 +15,9 @@ import {
   MerkleWitness,
   CircuitValue,
   prop,
-  Poseidon
-} from 'snarkyjs';
+  Poseidon,
+  Bool
+} from 'o1js';
 
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
@@ -24,9 +25,9 @@ import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransactio
 export class Account extends CircuitValue {
     @prop username: CircuitString;
     @prop password: Field;
-    @prop claimed: Field;
+    @prop claimed: Bool;
   
-    constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+    constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
       super(username, password, claimed);
       this.username = username;
       this.password = Poseidon.hash(password.toFields());
@@ -37,7 +38,7 @@ export class Account extends CircuitValue {
       return Poseidon.hash(this.toFields());
     }
   
-    setClaimed(claimed: Field) {
+    setClaimed(claimed: Bool) {
       this.claimed = claimed;
     }
   }
@@ -52,7 +53,7 @@ let usernames: Array<string> = new Array<string>();
 function createClaimAccountMerkleTree(username: string, password: string){
     let committment: Field = Field(0);
   
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
   
     usernames[usernames.length] = username;
     Accounts.set(username, account);
@@ -87,7 +88,7 @@ export const deploy = async (
     let zkAppResponse = await fetchAccount({ publicKey: zkAppPublicKey });
     let isDeployed = zkAppResponse.error == null;
     // TODO add check that verification key is correct once this is available in SnarkyJS
-    let zkappVerificationKey = zkAppResponse.account!.verificationKey!.toString()
+    let zkappVerificationKey = zkAppResponse.account!.zkapp?.verificationKey!.toString()
     isDeployed = isDeployed && (zkappVerificationKey==verificationKey.data);
     console.log(zkappVerificationKey)
     console.log()
@@ -216,9 +217,9 @@ export const deploy = async (
 
  // ----------------------------------------------------
  // create an account in zkapp
- let account1 = new Account(CircuitString.fromString("alysia"), CircuitString.fromString("minarocks"), Field(false));
+ let account1 = new Account(CircuitString.fromString("alysia"), CircuitString.fromString("minarocks"), Bool(false));
  claimAccountTree.setLeaf(BigInt(0), account1.hash())
- let account2 = new Account(CircuitString.fromString("zk"), CircuitString.fromString("app"), Field(false));
+ let account2 = new Account(CircuitString.fromString("zk"), CircuitString.fromString("app"), Bool(false));
  claimAccountTree.setLeaf(BigInt(1
     ), account2.hash())
 
@@ -227,7 +228,7 @@ export const deploy = async (
     let password = "app";
     let w = claimAccountTree.getWitness(BigInt(numUsers));
     let witness = new ClaimAccountMerkleWitness(w);
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
 
     //   await makeAndSendTransaction({
     //         feePayerPrivateKey: deployerPrivateKey,
@@ -262,7 +263,7 @@ export const deploy = async (
       // search for the newly created account
         username="alysia"
         password="minarocks"
-       account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+       account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Bool(false));
        let usernameIndex = 0;
     //    let usernameIndex = usernames.findIndex((obj) => {
     //     return obj === username;

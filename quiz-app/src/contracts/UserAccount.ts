@@ -3,7 +3,7 @@ import {
     method,
     SmartContract,
     UInt64,
-  } from 'snarkyjs';
+  } from 'o1js';
   
   await isReady;
 
