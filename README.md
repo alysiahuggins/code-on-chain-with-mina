@@ -26,7 +26,7 @@ Make sure you've deployed the contract by running
 - and then run `zk config` and `zk deploy $DEPLOYMENT_ALIAS` to deploy `YKProof`
 - Once, deployed, run the following
 `npm run build && node build/src/mainYKBerkeley.js $DEPLOYMENT_ALIAS`
-- Most recent [deployment](https://berkeley.minaexplorer.com/transaction/5JuhhUn9xikgX5diZP9CDtAz4Z1nH1BDACAkdVXF8vuS47THcgud)
+- Most recent [deployment](https://berkeley.minaexplorer.com/transaction/5JuhhUn9xikgX5diZP9CDtAz4Z1nH1BDACAkdVXF8vuS47THcgud), 9 Nov 2023
 
 
 #### Running with Front end 
