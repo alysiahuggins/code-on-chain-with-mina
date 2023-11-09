@@ -32,6 +32,7 @@ import {
   import {questions10 as questions} from "./curriculum/curriculum.js"
   
   import {answers10 as answers} from "./curriculum/curriculum.js"
+import { ButtonGroup } from 'react-bootstrap';
   
   
   await isReady;
@@ -100,6 +101,10 @@ import {
         let thisAnswer = new Answer(UInt32.from(answers[i].answer));
         Answers.set(parseInt(i), thisAnswer);
         answerTree.setLeaf(BigInt(i), thisAnswer.hash());
+        
+        let root = answerTree.getRoot();
+        let node = answerTree.getNode(1, BigInt(1));
+
     }
   
     // now that we got our accounts set up, we need the commitment to deploy our contract!

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "networks": {
+  "deployAliases": {
     "berkeley": {
       "url": "https://proxy.berkeley.minaexplorer.com/graphql",
       "keyPath": "keys/berkeley.json",
@@ -18,6 +18,13 @@
       "keyPath": "keys/berkeley3.json",
       "fee": "0.1",
       "smartContract": "YKProof"
+    },
+    "berkeley2023": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeley2023.json",
+      "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/berkeley2.json",
+      "feepayerAlias": "berkeley2",
+      "fee": "0.1"
     }
   }
 }
