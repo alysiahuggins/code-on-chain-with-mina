@@ -25,6 +25,13 @@
       "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/berkeley2.json",
       "feepayerAlias": "berkeley2",
       "fee": "0.1"
+    },
+    "berkeleynow": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeleynow.json",
+      "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/03-deploy.json",
+      "feepayerAlias": "03-deploy",
+      "fee": "0.1"
     }
   }
 }

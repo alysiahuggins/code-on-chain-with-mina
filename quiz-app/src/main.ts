@@ -33,8 +33,9 @@ import {
   shutdown,
   Experimental,
   Ledger,
-  CircuitString
-} from 'snarkyjs';
+  CircuitString,
+  Bool
+} from 'o1js';
 import { QuizToken } from './contracts/QuizToken.js';
 import { QuizV2 } from './contracts/Quiz.js';
 import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
@@ -80,9 +81,9 @@ class Answer extends CircuitValue {
 export class Account extends CircuitValue {
   @prop username: CircuitString;
   @prop password: Field;
-  @prop claimed: Field;
+  @prop claimed: Bool;
 
-  constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+  constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
     super(username, password, claimed);
     this.username = username;
     this.password = Poseidon.hash(password.toFields());
@@ -93,7 +94,7 @@ export class Account extends CircuitValue {
     return Poseidon.hash(this.toFields());
   }
 
-  setClaimed(claimed: Field) {
+  setClaimed(claimed: Bool) {
     this.claimed = claimed;
   }
 }
@@ -125,7 +126,7 @@ function createMerkleTree(){
 function createClaimAccountMerkleTree(username: string, password: string){
   let committment: Field = Field(0);
 
-  let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+  let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
 
   usernames[usernames.length] = username;
   Accounts.set(username, account);
@@ -243,7 +244,7 @@ export class ClaimAccountSC extends SmartContract {
   createClaimAccountMerkleTree(){
     let committment: Field = Field(0);
     let username = "alysia";
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Bool(false));
   
     usernames[usernames.length] = username;
     Accounts.set(username, account);
@@ -481,7 +482,7 @@ console.log('Account init');
       let numUsers = usernames.length;
       let w = claimAccountTree.getWitness(BigInt(numUsers));
       let witness = new ClaimAccountMerkleWitness(w);
-      let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Field(false));
+      let account = new Account(CircuitString.fromString(username),CircuitString.fromString(password), Bool(false));
 
         let txn = await Mina.transaction(claimAccountFeePayer, () => {
           claimAccountApp.createAccount(account, witness);
@@ -511,7 +512,7 @@ console.log('Account init');
     }else{
       var username = await question(`Please enter your username?\n`)
       var password = await question(`Please enter your password\n`);
-      let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Field(false));
+      let account = new Account(CircuitString.fromString(username), CircuitString.fromString(password), Bool(false));
       let usernameIndex = usernames.findIndex((obj) => {
           return obj === username;
         })!;
