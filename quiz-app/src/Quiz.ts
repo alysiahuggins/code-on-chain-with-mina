@@ -15,7 +15,7 @@ import {
     MerkleTree,
     isReady
   } from 'o1js';
-import {answers as answers} from "../curriculumOld/curriculum.js"
+import {answers as answers} from "./curriculum/curriculum.js"
 
 await isReady;
 let initialBalance = 10_000_000_000;

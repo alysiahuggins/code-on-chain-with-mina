@@ -21,7 +21,12 @@ https://berkeley.minaexplorer.com/wallet/B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVUL
 `npm run build && node build/src/main.js`
 
 ##### Running on Berkeley (Only Quiz Feature works)
-`npm run build && node build/src/mainYKBerkeley.js`
+Make sure you've deployed the contract by running 
+- comment line 97 of YKProof.ts otherwise you may get the error "invalid fee excess"
+- and then run `zk config` and `zk deploy $DEPLOYMENT_ALIAS` to deploy `YKProof`
+- Once, deployed, run the following
+`npm run build && node build/src/mainYKBerkeley.js $DEPLOYMENT_ALIAS`
+- Most recent [deployment](https://berkeley.minaexplorer.com/transaction/5JuhhUn9xikgX5diZP9CDtAz4Z1nH1BDACAkdVXF8vuS47THcgud)
 
 
 #### Running with Front end 

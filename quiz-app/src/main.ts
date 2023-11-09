@@ -43,9 +43,9 @@ import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
 import { UserAccount } from './contracts/UserAccount.js';
 
 import question from "./question.js";
-import {questions as questions} from "./curriculum/curriculum.js"
+import {questions as questions} from "./curriculumOld/curriculum.js"
 
-import {answers as answers} from "./curriculum/curriculum.js"
+import {answers as answers} from "./curriculumOld/curriculum.js"
 
 
 await isReady;

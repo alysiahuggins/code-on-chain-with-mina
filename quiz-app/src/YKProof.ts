@@ -28,7 +28,7 @@ import {
     Bool
   } from 'o1js';
   
-  import {answers10 as answers} from "./curriculum/curriculum.js"
+  import {answers10 as answers} from "./curriculumOld/curriculum.js"
   
   await isReady; //comment this when deploying to berkeley, uncomment when running locally
   let initialBalance = 100_000_000_000;
@@ -94,7 +94,7 @@ import {
                 ...Permissions.default(),
                 editState: Permissions.proofOrSignature(),
               });
-      this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
+      // this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
   
     }
   

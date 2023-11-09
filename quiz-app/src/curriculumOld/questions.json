@@ -1,0 +1,8 @@
+[
+    {
+      "question": "\nWhat is Mina?\n1. A layer 2 blockchain that scales Ethereum.\n2. A layer 1 blockchain that's EVM-compatible.\n3. A layer 1 blockchain that's based on ZK proofs and scales Ethereum.\n4. A layer 1 blockchain that’s based on ZK proofs and has a blockchain of a fixed size of 22KB.\n"
+    },
+    {
+      "question": "\nZero Knowledge (ZK) Proofs are way of proving the validity of a statement ...\n1.  without revealing any information apart from the fact that the statement is true.\n2. by revealing all information.\n3. by revealing some of the information.\n4. by assuming all is true until information is provided that says otherwise.\n"
+    }
+]

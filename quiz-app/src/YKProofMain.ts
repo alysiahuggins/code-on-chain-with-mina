@@ -30,9 +30,9 @@ import {
   import {YKProof} from './contracts/YKProof.js';
   
   import question from "./question.js";
-  import {questions10 as questions} from "./curriculum/curriculum.js"
+  import {questions10 as questions} from "./curriculumOld/curriculum.js"
   
-  import {answers10 as answers} from "./curriculum/curriculum.js"
+  import {answers10 as answers} from "./curriculumOld/curriculum.js"
 import { ButtonGroup } from 'react-bootstrap';
   
   

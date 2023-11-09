@@ -11,8 +11,8 @@ import {
     Bool
   } from 'o1js';
 
-import {questions as questions} from "../curriculumOld/curriculum.js"
-import {answers as answers} from "../curriculumOld/curriculum.js"
+import {questions as questions} from "./curriculum/curriculum.js"
+import {answers as answers} from "./curriculum/curriculum.js"
 
 export class Account extends CircuitValue {
     @prop username: CircuitString;

@@ -21,8 +21,8 @@ import {
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
 import {Account, Answer} from './contracts/Classes.js';
-import {questions as questions} from "./curriculum/curriculum.js"
-import {answers as answers} from "./curriculum/curriculum.js"
+import {questions as questions} from "./curriculumOld/curriculum.js"
+import {answers as answers} from "./curriculumOld/curriculum.js"
 import question from "./question.js";
 
   

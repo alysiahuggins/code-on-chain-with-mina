@@ -31,6 +31,30 @@
       "keyPath": "keys/berkeleynow.json",
       "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/03-deploy.json",
       "feepayerAlias": "03-deploy",
+      "fee": "0.1",
+      "smartContract": "YKProof"
+    },
+    "berkeleytoday": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeleytoday.json",
+      "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/03-deploy.json",
+      "feepayerAlias": "03-deploy",
+      "fee": "0.1",
+      "smartContract": "ClaimAccountSC"
+    },
+    "berkeleyworks": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeleyworks.json",
+      "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/03-deploy.json",
+      "feepayerAlias": "03-deploy",
+      "fee": "0.1",
+      "smartContract": "YKProof"
+    },
+    "berkeleyworksnow": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeleyworksnow.json",
+      "feepayerKeyPath": "/Users/alysiahuggins/.cache/zkapp-cli/keys/nov2023.json",
+      "feepayerAlias": "nov2023",
       "fee": "0.1"
     }
   }
