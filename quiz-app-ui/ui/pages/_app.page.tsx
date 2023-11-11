@@ -13,7 +13,7 @@ import {
   PublicKey,
   PrivateKey,
   Field,
-} from 'snarkyjs'
+} from 'o1js'
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
 import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
@@ -42,7 +42,8 @@ export default function App() {
     (async () => {
       if (!state.hasBeenSetup) {
         const zkappWorkerClient = new ZkappWorkerClient();
-        
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
         console.log('Loading SnarkyJS...');
         await zkappWorkerClient.loadSnarkyJS();
         console.log('done');
@@ -72,13 +73,16 @@ export default function App() {
         console.log('zkApp compiled');
 
         // const zkappPublicKey = PublicKey.fromBase58('B62qph2VodgSo5NKn9gZta5BHNxppgZMDUihf1g7mXreL4uPJFXDGDA');
-        const zkappPublicKey = PublicKey.fromBase58('B62qkFzjHYDXq5qnFL7Q3Z63H94vUVPprA6HVULkW8rGtowLDeRusEz');
+        const zkappPublicKey = PublicKey.fromBase58('B62qqC9MGg7QgQH56UQUuRKye7R8XkGMMiUCn4E8UY1Jz5VBKkjpuWv');
 
 
         await zkappWorkerClient.initZkappInstance(zkappPublicKey);
 
         console.log('getting zkApp state...');
-        await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey })
+        const res2 = await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
+        console.log(res2);
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        
         const currentNum = await zkappWorkerClient.getNum();
         console.log('current state:', currentNum.toString());
 

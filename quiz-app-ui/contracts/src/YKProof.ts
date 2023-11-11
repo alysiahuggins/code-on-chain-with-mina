@@ -2,7 +2,7 @@
  * Consolidation of all Smart Contracts for the purpose of deploying to one address
  * Includes {QuizV2, QuizToken, UserAccount, ClaimAccount}
  */
- import {
+import {
   Field,
   SmartContract,
   state,
@@ -24,12 +24,13 @@
   PrivateKey,
   AccountUpdate,
   Int64,
-  VerificationKey
-} from 'snarkyjs';
+  VerificationKey,
+  Bool
+} from 'o1js';
 
-import {answers10 as answers} from "./curriculum/curriculum.js"
+import {answers10 as answers} from "./curriculumOld/curriculum.js"
 
-await isReady; //comment this when deploying to berkeley or when running with ui
+await isReady; //comment this when deploying to berkeley, uncomment when running locally
 let initialBalance = 100_000_000_000;
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -54,9 +55,9 @@ class Answer extends CircuitValue {
 class Account extends CircuitValue {
   @prop username: CircuitString;
   @prop password: Field;
-  @prop claimed: Field;
+  @prop claimed: Bool;
 
-  constructor(username: CircuitString, password: CircuitString, claimed: Field) {
+  constructor(username: CircuitString, password: CircuitString, claimed: Bool) {
     super(username, password, claimed);
     this.username = username;
     this.password = Poseidon.hash(password.toFields());
@@ -67,7 +68,7 @@ class Account extends CircuitValue {
     return Poseidon.hash(this.toFields());
   }
 
-  setClaimed(claimed: Field) {
+  setClaimed(claimed: Bool) {
     this.claimed = claimed;
   }
 }
@@ -77,13 +78,23 @@ export class YKProof extends SmartContract {
   @state(Field) quizAnswerCommittment = State<Field>();
 
 
+  // deploy(args: DeployArgs) {
+  //   super.deploy(args);
+  //   this.setPermissions({
+  //     ...Permissions.default(),
+  //     editState: Permissions.proofOrSignature(),
+  //   });
+  //   this.balance.addInPlace(UInt64.from(initialBalance));
+  //   this.commitment.set(initialClaimTreeCommittment);
+  // }
+
   deploy(args: DeployArgs){
       super.deploy(args);
       this.setPermissions({
               ...Permissions.default(),
               editState: Permissions.proofOrSignature(),
             });
-    this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
+    // this.balance.addInPlace(UInt64.from(initialBalance)); //comment this for deployment to berkeley
 
   }
 
@@ -123,7 +134,7 @@ export class YKProof extends SmartContract {
   createClaimAccountMerkleTree(){
     let committment: Field = Field(0);
     let username = "alysia";
-    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Field(false));
+    let account = new Account(CircuitString.fromString(username),CircuitString.fromString("minarocks"), Bool(false));
   
     claimAccountTree.setLeaf(BigInt(0), account.hash());
   
@@ -147,7 +158,8 @@ export class YKProof extends SmartContract {
       committment = answerTree.getRoot();
       return committment;
     }
-
+    
+  
     @method validateQuestionResponse(response: Field, path: MyMerkleWitness){
       
       let quizAnswerCommittment = this.quizAnswerCommittment.get();
@@ -156,7 +168,6 @@ export class YKProof extends SmartContract {
       // we check that the response is the same as the hash of the answer at that path
       path.calculateRoot(Poseidon.hash(response.toFields())).assertEquals(quizAnswerCommittment);
     }
-
 
     // QUiz TOken
     @method tokenDeploy(deployer: PrivateKey, verificationKey: VerificationKey) {

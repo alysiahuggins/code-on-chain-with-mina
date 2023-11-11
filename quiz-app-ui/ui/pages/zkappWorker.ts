@@ -13,18 +13,18 @@ import {
   MerkleWitness,
   Experimental,
   AccountUpdate,
-  UInt64
-} from 'snarkyjs'
+  UInt64,
+  TokenId
+} from 'o1js'
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 // ---------------------------------------------------------------------------------------
 
-import type { Add } from '../../contracts/src/Add';
 // import type { YKProof } from '../../contracts/src/YKProof';
 import type { YKProof } from '../../../quiz-app/src/contracts/YKProof';
 // import { MyMerkleWitness } from '../../contracts/src/Classes';
-import {answers as answers} from '../../contracts/src/curriculum/curriculum'
+import {answers as answers} from '../../contracts/src/curriculumOld/curriculum'
 
 export class MyMerkleWitness extends MerkleWitness(8) {}
 
@@ -59,7 +59,6 @@ function createMerkleTree(){
 }
 
 const state = {
-  Add: null as null | typeof Add,
   zkapp: null as null | YKProof,
   transaction: null as null | Transaction,
   YKProof: null as null | typeof YKProof,
@@ -72,15 +71,15 @@ const state = {
 
 const functions = {
   loadSnarkyJS: async (args: {}) => {
-    await isReady;
+    // await isReady;
     const answerTree = new MerkleTree(8);
     state.answerTree = answerTree;
     createMerkleTree();
 
   },
   setActiveInstanceToBerkeley: async (args: {}) => {
-    const Berkeley = Mina.BerkeleyQANet(
-      "https://proxy.berkeley.minaexplorer.com/graphql"
+    const Berkeley = Mina.Network(
+      'https://proxy.berkeley.minaexplorer.com/graphql'
     );
     Mina.setActiveInstance(Berkeley);
   },
@@ -102,6 +101,7 @@ const functions = {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     return await fetchAccount({ publicKey });
   },
+  
   initZkappInstance: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     state.zkapp = new state.YKProof!(publicKey);
