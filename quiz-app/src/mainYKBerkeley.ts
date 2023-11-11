@@ -1,7 +1,6 @@
 
 
 
-import { YKProof } from './contracts/YKProof.js';
 import {
   isReady,
   shutdown,
@@ -20,7 +19,8 @@ import {
 
 import fs from 'fs';
 import { loopUntilAccountExists, zkAppNeedsInitialization, makeAndSendTransaction } from './utils.js';
-import {Account, Answer} from './contracts/Classes.js';
+import {Account, Answer} from './Classes.js';
+import { YKProof } from './YKProof.js';
 import {questions as questions} from "./curriculumOld/curriculum.js"
 import {answers as answers} from "./curriculumOld/curriculum.js"
 import question from "./question.js";
@@ -88,12 +88,11 @@ export const deploy = async (
   
     let zkAppResponse = await fetchAccount({ publicKey: zkAppPublicKey });
     let isDeployed = zkAppResponse.error == null;
+    console.log("isDeployed state: ", isDeployed);
     // TODO add check that verification key is correct once this is available in SnarkyJS
     let zkappVerificationKey = zkAppResponse.account!.zkapp!.verificationKey!.toString()
     isDeployed = isDeployed && (zkappVerificationKey==verificationKey.data);
-    console.log(zkappVerificationKey)
-    console.log()
-    console.log(verificationKey.data)
+    
 
     // ----------------------------------------------------
   
@@ -165,11 +164,14 @@ export const deploy = async (
  
   const zkAppPublicKey = zkAppPrivateKey.toPublicKey();
   let zkapp = new YKProof(zkAppPublicKey);
-let tokenId = zkapp.token.id;
+  let tokenId = zkapp.token.id;
 
 
    // ----------------------------------------------------
    let zkAppResponse = await fetchAccount({ publicKey: zkAppPublicKey });
+  //  console.log(zkAppResponse.account?.zkapp);
+  //  console.log(zkAppResponse.account?.zkapp?.appState);
+
    let isDeployed = zkAppResponse.error == null;
    // TODO add check that verification key is correct once this is available in SnarkyJS
 
@@ -177,7 +179,7 @@ let tokenId = zkapp.token.id;
    //   more custom account creation - say deploying a zkApp to a different key than the deployer
    //   key, programmatically parameterizing a zkApp before initializing it, or creating Smart
    //   Contracts programmatically for users as part of an application.
-   await deploy(deployerPrivateKey, zkAppPrivateKey, zkAppPublicKey, zkapp, verificationKey)
+   if(!isDeployed) await deploy(deployerPrivateKey, zkAppPrivateKey, zkAppPublicKey, zkapp, verificationKey)
    // ----------------------------------------------------
  
   // ----------------------------------------------------
@@ -186,42 +188,7 @@ let tokenId = zkapp.token.id;
     eachTimeNotExist: () => console.log('waiting for zkApp account to be deployed...'),
     isZkAppAccount: true
   });
-  // ----------------------------------------------------...
-   
- 
-  try{
-    
-    console.log('getting Token balance')
-    // console.log(
-    //   `Winner's balance for tokenId: ${Ledger.fieldToBase58(tokenId)}`,
-    //   Mina.getBalance(zkAppPublicKey, tokenId).value.toBigInt()
-    // );
-  }catch(e){
-    console.log(`Error getting token balance from ${zkAppPublicKey.toBase58()}`);
-    console.log(e);
-        // console.log("deploy the userAccount ");
-        // console.log('deploy userAccount');
-        // let tx = await Mina.transaction({ feePayerKey: deployerPrivateKey, fee: transactionFee },() => {
-        // AccountUpdate.fundNewAccount(deployerPrivateKey);
-        // zkapp.tokenDeploy(deployerPrivateKey, YKProof._verificationKey!);
-        // zkapp.sign(deployerPrivateKey);
-        // });
-        // console.log('deploy UserAcocunt (proof)');
-        // await tx.prove(); 
-        // let res = await tx.send();
-        // let hash = await res.hash(); // This will change in a future version of SnarkyJS
-        // if (hash == null) {
-        // console.log('error sending transaction (see above)');
-        // } else {
-        // console.log(
-        //     'See transaction at',
-        //     'https://berkeley.minaexplorer.com/transaction/' + hash
-        // );
-        // }
-    }
-        
-//   }
-  shutdown();
+  
   // ----------------------------------------------------
 
   const needsInitialization = await zkAppNeedsInitialization({ zkAppAccount });

@@ -1,4 +1,4 @@
-import { QuizToken } from './contracts/QuizToken.js';
-import { UserAccount } from './contracts/UserAccount.js';
+import { QuizToken } from './QuizToken.js';
+import { UserAccount } from './UserAccount.js';
 
 export {  QuizToken, UserAccount};

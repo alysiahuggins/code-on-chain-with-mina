@@ -30,7 +30,7 @@ import {
   
   import {answers10 as answers} from "./curriculumOld/curriculum.js"
   
-  await isReady; //comment this when deploying to berkeley, uncomment when running locally
+  // await isReady; //comment this when deploying to berkeley, uncomment when running locally
   let initialBalance = 100_000_000_000;
   
   class MyMerkleWitness extends MerkleWitness(8) {}

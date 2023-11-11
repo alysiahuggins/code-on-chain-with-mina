@@ -21,10 +21,9 @@ type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 // ---------------------------------------------------------------------------------------
 
-// import type { YKProof } from '../../contracts/src/YKProof';
-import type { YKProof } from '../../../quiz-app/src/contracts/YKProof';
+import type { YKProof } from '../../../quiz-app/src/YKProof';
 // import { MyMerkleWitness } from '../../contracts/src/Classes';
-import {answers as answers} from '../../contracts/src/curriculumOld/curriculum'
+import {answers as answers} from '../../../quiz-app/src/curriculumOld/curriculum'
 
 export class MyMerkleWitness extends MerkleWitness(8) {}
 
@@ -71,7 +70,7 @@ const state = {
 
 const functions = {
   loadSnarkyJS: async (args: {}) => {
-    // await isReady;
+    await isReady;
     const answerTree = new MerkleTree(8);
     state.answerTree = answerTree;
     createMerkleTree();
@@ -84,13 +83,11 @@ const functions = {
     Mina.setActiveInstance(Berkeley);
   },
   loadContract: async (args: {}) => {
-    // const { YKProof } = await import('../../contracts/build/src/YKProof.js');
-    const { YKProof } = await import('../../../quiz-app/build/src/contracts/YKProof.js');
+    const { YKProof } = await import('../../../quiz-app/build/src/YKProof.js');
     state.YKProof = YKProof;
-    // console.log("verificationKey");
-    // const verificationKey = await YKProof.compile();
-    // // console.log(verificationKey);
-    // console.log(verificationKey.verificationKey.hash);
+    console.log("compiling...");
+    const verificationKey = await state.YKProof!.compile();
+    console.log("verification key hash ", verificationKey.verificationKey.hash);
   },
   compileContract: async (args: {}) => {
     console.log("verificationKey");
@@ -103,14 +100,17 @@ const functions = {
   },
   
   initZkappInstance: async (args: { publicKey58: string }) => {
+    console.log("initZkappInstance");
     const publicKey = PublicKey.fromBase58(args.publicKey58);
     state.zkapp = new state.YKProof!(publicKey);
     state.tokenId = state.zkapp!.tokenId;
     state.zkappPublicKey = publicKey;
   },
   getNum: async (args: {}) => {
+    
     const currentNum = await state.zkapp!.commitment.get();
     return JSON.stringify(currentNum.toJSON());
+    
   },
   createUpdateTransaction: async (args: {response: number, questionPosition: number}) => {
     try{
@@ -125,6 +125,7 @@ const functions = {
     }catch(e){ 
       console.log("error from create tx")
       console.log(e)
+
       return false;
     }
   },

@@ -11,12 +11,13 @@ import ZkappWorkerClient from './zkappWorkerClient';
 
 import {
   PublicKey,
-  PrivateKey,
   Field,
 } from 'o1js'
 
 import {questionsRadio as questionsRadio} from "../../../quiz-app/src/curriculum/curriculum.js";
 import {answers as answers} from "../../../quiz-app/src/curriculum/curriculum.js";
+// import  { YKProof } from '../../../quiz-app/build/src/YKProof.js';
+
 let index = 0;
 
 
@@ -68,9 +69,9 @@ export default function App() {
 
         await zkappWorkerClient.loadContract();
 
-        console.log('compiling zkApp');
-        await zkappWorkerClient.compileContract();
-        console.log('zkApp compiled');
+        // console.log('compiling zkApp');
+        // await zkappWorkerClient.compileContract();
+        // console.log('zkApp compiled');
 
         // const zkappPublicKey = PublicKey.fromBase58('B62qph2VodgSo5NKn9gZta5BHNxppgZMDUihf1g7mXreL4uPJFXDGDA');
         const zkappPublicKey = PublicKey.fromBase58('B62qqC9MGg7QgQH56UQUuRKye7R8XkGMMiUCn4E8UY1Jz5VBKkjpuWv');
@@ -78,9 +79,21 @@ export default function App() {
 
         await zkappWorkerClient.initZkappInstance(zkappPublicKey);
 
+        //
+        // console.log("random try");
+        // let zkapp = new YKProof(zkappPublicKey);
+        // let tokenId = zkapp.token.id;
+        // let zkAppResponse = await fetchAccount({ publicKey: zkappPublicKey });
+        // console.log("first Deployed status ", zkAppResponse.error==null);
+
+        // console.log(zkapp.commitment.get().toString());
+
+   // ----------------------------------------------------
+   
+
         console.log('getting zkApp state...');
         const res2 = await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
-        console.log(res2);
+        console.log("Deployed status ", res2.error==null);
         await new Promise((resolve) => setTimeout(resolve, 5000));
         
         const currentNum = await zkappWorkerClient.getNum();

@@ -23,11 +23,11 @@ import {
     PublicKey,
     Bool
   } from 'o1js';
-  import { QuizToken } from './contracts/QuizToken.js';
-  import { QuizV2 } from './contracts/Quiz.js';
-  import { ClaimAccountV2 } from './contracts/ClaimAccount.js';
-  import { UserAccount } from './contracts/UserAccount.js';
-  import {YKProof} from './contracts/YKProof.js';
+  import { QuizToken } from './QuizToken.js';
+  import { QuizV2 } from './Quiz.js';
+  import { ClaimAccountV2 } from './ClaimAccount.js';
+  import { UserAccount } from './UserAccount.js';
+  import {YKProof} from './YKProof.js';
   
   import question from "./question.js";
   import {questions10 as questions} from "./curriculumOld/curriculum.js"
